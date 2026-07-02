@@ -1,0 +1,28 @@
+                              Users
+                                │
+                        Next.js Frontend
+                                │
+                                ▼
+                          API Gateway
+                                │
+         ┌──────────────────────┼─────────────────────────┐
+         │                      │                         │
+         ▼                      ▼                         ▼
+ Authentication          Company Service           AI Chat Service
+         │                      │                         │
+         │                      ▼                         │
+         │               Financial Service                │
+         │                      │                         │
+         │                      ▼                         ▼
+         │                Event Service            LangGraph Agent
+         │                                              │
+         │                     ┌────────────────────────┼──────────────────────────┐
+         │                     │                        │                          │
+         ▼                     ▼                        ▼                          ▼
+ PostgreSQL             RAG Service              News Service             Valuation Engine
+                              │                        │                          │
+                              ▼                        ▼                          ▼
+                       Vector Database         News Database             Financial APIs
+                              │
+                              ▼
+                     Document Storage (S3)

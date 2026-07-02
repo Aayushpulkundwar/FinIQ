@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  db:
+    image: ankane/pgvector:v0.5.1
+    container_name: finsightai_db
+    restart: always
+    environment:
+      POSTGRES_DB: finsightai
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: finsightai_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: finsightai_web
+    restart: always
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - ENVIRONMENT=development
+      - POSTGRES_SERVER=db
+      - REDIS_HOST=redis
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: finsightai_celery
+    restart: always
+    command: celery -A app.core.celery_app worker --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - ENVIRONMENT=development
+      - POSTGRES_SERVER=db
+      - REDIS_HOST=redis
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
