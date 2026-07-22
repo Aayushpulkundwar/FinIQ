@@ -5,6 +5,7 @@ celery_app = Celery(
     "finsightai_tasks",
     broker=settings.CELERY_BROKER_URL,
     backend=settings.CELERY_RESULT_BACKEND,
+    include=["app.services.tasks"],
 )
 
 celery_app.conf.update(

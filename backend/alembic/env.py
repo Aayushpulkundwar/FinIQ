@@ -1,5 +1,11 @@
 import asyncio
+import os
+import sys
 from logging.config import fileConfig
+
+# Ensure the backend/ directory (parent of alembic/) is on the import path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
@@ -17,8 +23,13 @@ from app.core.config import settings
 from app.db.base import Base
 target_metadata = Base.metadata
 
-# Override URL with the sync database URI from settings
-config.set_main_option("sqlalchemy.url", settings.SQLALCHEMY_SYNC_DATABASE_URI)
+# Import models & base metadata
+from app.core.config import settings
+from app.db.base import Base
+target_metadata = Base.metadata
+
+# Override URL with the async database URI from settings
+config.set_main_option("sqlalchemy.url", settings.SQLALCHEMY_DATABASE_URI)
 
 
 def run_migrations_offline() -> None:

@@ -1,53 +1,22 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy import text
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from redis.asyncio import Redis
 from app.db.session import get_db
-from app.core.config import settings
-from app.schemas import HealthCheck
-from loguru import logger
+from app.schemas.health import HealthCheckResponse
+from app.services.health import HealthService
 
 router = APIRouter()
 
 
-@router.get("", response_model=HealthCheck)
-async def health_check(db: AsyncSession = Depends(get_db)) -> HealthCheck:
+@router.get("", response_model=HealthCheckResponse)
+async def health_check(
+    response: Response, db: AsyncSession = Depends(get_db)
+) -> HealthCheckResponse:
     """
-    Perform a health check verification on all underlying backing services.
+    Perform a health check on the core dependencies of the application.
+    Returns HTTP 200 if PostgreSQL and Redis are both healthy and connected,
+    otherwise returns HTTP 503 Service Unavailable.
     """
-    db_status = "healthy"
-    redis_status = "healthy"
-
-    # Database connection test
-    try:
-        await db.execute(text("SELECT 1"))
-    except Exception as e:
-        logger.error(f"Database health check failed: {e}")
-        db_status = "unhealthy"
-
-    # Redis connection test
-    try:
-        r = Redis(
-            host=settings.REDIS_HOST,
-            port=settings.REDIS_PORT,
-            password=settings.REDIS_PASSWORD,
-            socket_timeout=1.0,
-        )
-        await r.ping()
-        await r.close()
-    except Exception as e:
-        logger.error(f"Redis health check failed: {e}")
-        redis_status = "unhealthy"
-
-    overall_status = (
-        "healthy"
-        if db_status == "healthy" and redis_status == "healthy"
-        else "unhealthy"
-    )
-
-    return HealthCheck(
-        status=overall_status,
-        version="0.1.0",
-        database=db_status,
-        redis=redis_status,
-    )
+    health = await HealthService.check_health(db)
+    if health.status == "unhealthy":
+        response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    return health

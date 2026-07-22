@@ -49,11 +49,11 @@ def setup_logging() -> None:
         logging_logger.propagate = False
 
     # Standard configuration for the root logger
-    logging.root.setLevel(logging.DEBUG if settings.DEBUG else logging.INFO)
+    logging.root.setLevel(settings.LOG_LEVEL.upper())
     logging.root.addHandler(intercept_handler)
 
     # Set up Loguru output format
-    log_level = "DEBUG" if settings.DEBUG else "INFO"
+    log_level = settings.LOG_LEVEL.upper()
     
     logger.configure(
         handlers=[

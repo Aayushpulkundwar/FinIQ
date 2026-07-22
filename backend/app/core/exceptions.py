@@ -49,6 +49,12 @@ class AIOrchestrationException(AppException):
         super().__init__(message, status_code=status.HTTP_502_BAD_GATEWAY)
 
 
+class LLMUnavailableException(AppException):
+    """Raised when LLM/AI services are unavailable or rate-limited."""
+    def __init__(self, message: str = "AI service is currently unavailable", status_code: int = status.HTTP_503_SERVICE_UNAVAILABLE):
+        super().__init__(message, status_code=status_code)
+
+
 # Exception handlers registration
 def setup_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(AppException)

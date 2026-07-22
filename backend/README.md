@@ -1,6 +1,6 @@
-# FinsightAI Backend
+# FinIQ Backend
 
-FinsightAI is a production-ready, clean-architecture backend for an AI-powered investment research platform. It is built using FastAPI, PostgreSQL, SQLAlchemy 2.0, Celery, Redis, LangChain, LangGraph, and pgvector.
+FinIQ is a production-ready, clean-architecture backend for an AI-powered investment research platform. It is built using FastAPI, PostgreSQL, SQLAlchemy 2.0, Celery, Redis, LangChain, LangGraph, and pgvector.
 
 ## Architecture
 
