@@ -191,6 +191,14 @@ async def query_orchestrator(
             session_obj = res.scalars().first()
             if session_obj:
                 ticker = session_obj.ticker
+            else:
+                logger.warning(f"Active session {active_session_id} not found in database. Initializing a fresh ChatSession.")
+                history_service = ChatHistoryService(db)
+                new_sess = await asyncio.wait_for(
+                    history_service.create_session(ticker=None),
+                    timeout=10.0
+                )
+                active_session_id = new_sess.id
 
         if ticker:
             from app.models.company import Company
@@ -248,6 +256,19 @@ async def query_orchestrator(
                 if matched:
                     if c not in resolved_companies:
                         resolved_companies.append(c)
+
+        if not company and resolved_companies:
+            company = resolved_companies[0]
+
+        # Immediately sync active_session_id ticker symbol if missing
+        if company and active_session_id and not is_mock_db:
+            stmt = select(ChatSession).where(ChatSession.id == active_session_id)
+            res = await db.execute(stmt)
+            session_obj = res.scalars().first()
+            if session_obj and not session_obj.ticker:
+                session_obj.ticker = company.ticker_symbol
+                db.add(session_obj)
+                await db.commit()
 
         # Detect comparison intent
         comparison_keywords = ["compare", "comparison", " vs ", " versus", "better company", "which is better", "which one is better", "prefer"]
@@ -388,16 +409,10 @@ async def query_orchestrator(
             try:
                 if not is_mock_db:
                     history_service = ChatHistoryService(db)
-                    await history_service.add_message(
+                    await history_service.save_turn(
                         session_id=active_session_id,
-                        role="user",
-                        content=payload.query
-                    )
-                    await history_service.add_message(
-                        session_id=active_session_id,
-                        role="assistant",
-                        content=ai_response.executive_summary,
-                        metadata=ai_response.model_dump()
+                        user_query=payload.query,
+                        assistant_response=ai_response
                     )
             except Exception as persist_err:
                 logger.warning(
@@ -431,7 +446,7 @@ async def query_orchestrator(
                 session_id=active_session_id
             )
 
-        # Fallback to legacy single target company logic
+        # Fallback to single target company logic
         company = None
         if not comparison_mode:
             if ticker:
@@ -439,8 +454,48 @@ async def query_orchestrator(
                 stmt = select(Company).where(Company.ticker_symbol == ticker.upper())
                 res = await db.execute(stmt)
                 company = res.scalars().first()
-            elif resolved_companies:
+            
+            # If ticker lookup failed or was not set, fall back to resolved_companies from query text
+            if not company and resolved_companies:
                 company = resolved_companies[0]
+                # Sync session ticker to resolved company symbol
+                if active_session_id and not is_mock_db:
+                    stmt = select(ChatSession).where(ChatSession.id == active_session_id)
+                    res = await db.execute(stmt)
+                    session_obj = res.scalars().first()
+                    if session_obj:
+                        session_obj.ticker = company.ticker_symbol
+                        db.add(session_obj)
+                        await db.commit()
+
+        # Guard: If no company could be resolved, do not run an unfiltered search across unrelated companies
+        if not company and not comparison_mode:
+            msg = f"Could not identify a matching target company in the database for query: '{payload.query}'. Please specify a valid company name or ticker."
+            try:
+                if not is_mock_db and active_session_id:
+                    history_service = ChatHistoryService(db)
+                    await history_service.save_turn(active_session_id, payload.query, msg)
+            except Exception as e:
+                logger.warning(f"Failed to persist unmatched company message: {e}")
+
+            from app.schemas.response_generation import AIResponse
+            return ChatQueryResponse(
+                user_query=payload.query,
+                retrieved_chunks=[],
+                company_details=None,
+                document_metadata=[],
+                execution_history=["no_company_matched"],
+                final_context={},
+                response=AIResponse(
+                    executive_summary=msg,
+                    key_insights=["No matching company identified in database."],
+                    supporting_evidence=[],
+                    risks_limitations=[],
+                    sources=[],
+                    confidence_score=0.0
+                ),
+                session_id=active_session_id
+            )
 
         if company and not is_mock_db:
             from app.models.document_chunk import DocumentChunk
@@ -467,9 +522,12 @@ async def query_orchestrator(
 
             if chunk_count == 0 and is_rag_dependent_query(payload.query):
                 msg = f"No annual report has been uploaded for {company.company_name} yet — live market data is available, but document-based analysis requires an upload"
-                history_service = ChatHistoryService(db)
-                await history_service.add_message(active_session_id, "user", payload.query)
-                await history_service.add_message(active_session_id, "assistant", msg)
+                try:
+                    if not is_mock_db and active_session_id:
+                        history_service = ChatHistoryService(db)
+                        await history_service.save_turn(active_session_id, payload.query, msg)
+                except Exception as persist_err:
+                    logger.warning(f"Failed to persist fallback chat messages for session {active_session_id}: {persist_err}")
                 from app.schemas.response_generation import AIResponse
                 
                 return ChatQueryResponse(
@@ -543,16 +601,10 @@ async def query_orchestrator(
         try:
             if not is_mock_db:
                 history_service = ChatHistoryService(db)
-                await history_service.add_message(
+                await history_service.save_turn(
                     session_id=active_session_id,
-                    role="user",
-                    content=payload.query
-                )
-                await history_service.add_message(
-                    session_id=active_session_id,
-                    role="assistant",
-                    content=ai_response.executive_summary,
-                    metadata=ai_response.model_dump()
+                    user_query=payload.query,
+                    assistant_response=ai_response
                 )
         except Exception as persist_err:
             logger.warning(
@@ -808,7 +860,7 @@ async def run_rag_diagnostics(db: AsyncSession = Depends(get_db)) -> Dict[str, A
 
 **Status**: {report_data["overall_status"]}
 **LLM Provider**: {settings.LLM_PROVIDER}
-**LLM Model**: {settings.GEMINI_MODEL}
+**LLM Model**: {settings.OPENROUTER_MODEL}
 **Mock Mode (ALLOW_MOCK_LLM)**: {settings.ALLOW_MOCK_LLM}
 
 ## 1. Database Ingest & In-Memory Records

@@ -222,6 +222,13 @@ export const useUIStore = create<UIState>((set, get) => ({
       const validCompanies = data.filter(isValidCompany);
       set({ companies: validCompanies });
 
+      // Restore active chat session if present in localStorage
+      const activeSessionId = localStorage.getItem('finiq_active_session_id');
+      if (activeSessionId && get().conversations.length === 0) {
+        set({ sessionId: activeSessionId });
+        get().loadChatHistory(activeSessionId);
+      }
+
       // Auto-select fallback order:
       // 1. Keep existing selectedCompany if already valid
       const current = get().selectedCompany;
@@ -310,11 +317,15 @@ export const useUIStore = create<UIState>((set, get) => ({
 
       const res = await api.queryChat(text, activeSessionId);
       
-      // If session was created on the fly by the backend, save it locally
-      if (res.session_id && !get().sessionId) {
+      // Save active session_id locally to preserve session across page reloads
+      if (res.session_id) {
         set({ sessionId: res.session_id });
+        localStorage.setItem('finiq_active_session_id', res.session_id);
         if (ticker) {
           localStorage.setItem(`finiq_session_${ticker}`, res.session_id);
+        }
+        if (res.company_details?.ticker_symbol) {
+          localStorage.setItem(`finiq_session_${res.company_details.ticker_symbol}`, res.session_id);
         }
       }
 
@@ -404,14 +415,25 @@ export const useUIStore = create<UIState>((set, get) => ({
         sender: msg.role === 'user' ? 'user' : 'assistant',
         content: msg.content,
         timestamp: new Date(msg.created_at),
-        response: msg.metadata?.response || undefined,
+        response: msg.metadata?.response || (msg.metadata && msg.metadata.executive_summary ? msg.metadata : undefined),
         retrieved_chunks: msg.metadata?.retrieved_chunks || undefined,
         execution_history: msg.metadata?.execution_history || undefined,
       }));
       set({ conversations: mapped, isGenerating: false });
     } catch (e: any) {
-      console.error(`Failed to load chat history for session ${sessionId}: ${e.message || e}`);
-      set({ error: e.message || 'Failed to load conversation history', isGenerating: false });
+      const errStr = (e.message || String(e)).toLowerCase();
+      if (errStr.includes("not found") || errStr.includes("404")) {
+        console.warn(`Session ${sessionId} no longer exists on backend. Clearing stale session cache.`);
+        set({ sessionId: null, conversations: [], isGenerating: false, error: null });
+        localStorage.removeItem('finiq_active_session_id');
+        const { selectedCompany } = get();
+        if (selectedCompany) {
+          localStorage.removeItem(`finiq_session_${selectedCompany.ticker_symbol}`);
+        }
+      } else {
+        console.error(`Failed to load chat history for session ${sessionId}: ${e.message || e}`);
+        set({ error: e.message || 'Failed to load conversation history', isGenerating: false });
+      }
     }
   },
 
@@ -419,6 +441,7 @@ export const useUIStore = create<UIState>((set, get) => ({
     const { selectedCompany, sessionId } = get();
     // 1. Optimistic clear
     set({ sessionId: null, conversations: [] });
+    localStorage.removeItem('finiq_active_session_id');
     if (selectedCompany) {
       localStorage.removeItem(`finiq_session_${selectedCompany.ticker_symbol}`);
     }

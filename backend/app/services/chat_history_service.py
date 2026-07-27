@@ -26,36 +26,25 @@ async def _generate_and_save_title(session_id: uuid.UUID, user_query: str, assis
                 return
 
             title = None
-            # 2. Check if Mock LLM mode is active or Gemini Key is missing
-            if settings.ALLOW_MOCK_LLM or not settings.GEMINI_API_KEY or "placeholder" in settings.GEMINI_API_KEY.lower():
+            # 2. Check if Mock LLM mode is active or OpenRouter Key is missing
+            openrouter_key = settings.OPENROUTER_API_KEY or ""
+            if settings.ALLOW_MOCK_LLM or not openrouter_key or "placeholder" in openrouter_key.lower():
                 title = user_query[:50] + "..." if len(user_query) > 50 else user_query
             else:
                 try:
-                    from app.core.gemini_gate import check_gemini_cooldown, set_gemini_cooldown, parse_retry_delay
-                    if await check_gemini_cooldown():
-                        logger.warning("GeminiGate: Gemini is in cooldown. Skipping session title generation.")
-                    else:
-                        # 3. Call Gemini to generate a short summary title
-                        from langchain_google_genai import ChatGoogleGenerativeAI
-                        llm = ChatGoogleGenerativeAI(
-                            google_api_key=settings.GEMINI_API_KEY,
-                            model=settings.GEMINI_MODEL,
-                            temperature=0,
-                            max_retries=1
-                        )
-                        prompt = (
-                            "Generate a extremely short, concise conversational title (max 5 words) summarizing "
-                            f"this user query: '{user_query}' and the assistant response. Do not use quotes, punctuation or prefix text."
-                        )
-                        resp = await llm.ainvoke(prompt)
-                        title = resp.content.strip().strip('"').strip("'").strip()
+                    from app.core.openrouter_client import openrouter_chat
+                    prompt = (
+                        "Generate an extremely short, concise conversational title (max 5 words) summarizing "
+                        f"this user query: '{user_query}'. Do not use quotes, punctuation or prefix text."
+                    )
+                    llm_res = await openrouter_chat(
+                        messages=[{"role": "user", "content": prompt}],
+                        model=settings.OPENROUTER_MODEL,
+                        api_key=settings.OPENROUTER_API_KEY,
+                        timeout=15.0
+                    )
+                    title = llm_res.content.strip().strip('"').strip("'").strip()
                 except Exception as e:
-                    if "resourceexhausted" in str(e).lower() or "429" in str(e).lower() or "rate_limit" in str(e).lower() or "quota" in str(e).lower():
-                        try:
-                            delay = parse_retry_delay(e)
-                            await set_gemini_cooldown(delay)
-                        except Exception as gate_err:
-                            logger.error(f"ChatHistoryService: Failed to set Gemini cooldown gate: {gate_err}")
                     logger.warning(f"Failed to generate session title via LLM: {e}")
 
             # Fallback to query prefix if generation was unsuccessful
@@ -86,6 +75,85 @@ class ChatHistoryService:
         await self.db.refresh(session)
         return session
 
+    async def save_turn(
+        self,
+        session_id: uuid.UUID,
+        user_query: str,
+        assistant_response: Any,
+        user_metadata: Optional[dict] = None
+    ) -> tuple[ChatMessage, ChatMessage]:
+        """
+        Persists a complete conversational turn (User message + Assistant response)
+        atomically in a single database transaction.
+        Handles string responses or AIResponse pydantic models gracefully.
+        """
+        # Invalidate Redis context cache for this session
+        cache_key = f"chat:context:{session_id}"
+        await cache.delete(cache_key)
+
+        # 1. Prepare user message
+        user_msg = ChatMessage(
+            session_id=session_id,
+            role=ChatRole.user,
+            content=user_query,
+            metadata_=user_metadata
+        )
+        self.db.add(user_msg)
+
+        # 2. Extract content and metadata for assistant response
+        ast_content = ""
+        ast_metadata = None
+
+        if hasattr(assistant_response, "executive_summary"):
+            exec_summary = getattr(assistant_response, "executive_summary", "") or ""
+            key_insights = getattr(assistant_response, "key_insights", []) or []
+            is_degraded = getattr(assistant_response, "is_degraded", False)
+            error_type = getattr(assistant_response, "error_type", None)
+            
+            # Clean user-facing text fallback if parsing failed
+            if is_degraded and error_type == "json_parse_failure":
+                ast_content = "I had trouble generating a clean summary for this query. Please try rephrasing or asking again."
+            elif exec_summary.strip() and not (is_degraded and "could not be parsed" in exec_summary.lower()):
+                ast_content = exec_summary.strip()
+            elif key_insights:
+                ast_content = "\n".join(str(k) for k in key_insights)
+            else:
+                ast_content = "Response generated successfully."
+
+            if hasattr(assistant_response, "model_dump"):
+                try:
+                    ast_metadata = assistant_response.model_dump()
+                    if is_degraded:
+                        ast_metadata["is_error"] = True
+                except Exception as dump_err:
+                    logger.warning(f"Failed to dump AIResponse metadata: {dump_err}")
+        elif isinstance(assistant_response, dict):
+            ast_content = assistant_response.get("executive_summary") or assistant_response.get("content") or str(assistant_response)
+            ast_metadata = assistant_response
+        else:
+            ast_content = str(assistant_response)
+
+        ast_msg = ChatMessage(
+            session_id=session_id,
+            role=ChatRole.assistant,
+            content=ast_content,
+            metadata_=ast_metadata
+        )
+        self.db.add(ast_msg)
+
+        # Atomic commit for both user and assistant messages
+        await self.db.commit()
+        await self.db.refresh(user_msg)
+        await self.db.refresh(ast_msg)
+
+        # Trigger background title generation
+        try:
+            asyncio.create_task(_generate_and_save_title(session_id, user_query, ast_content))
+        except Exception as e:
+            logger.error(f"Failed to trigger background title generator: {e}")
+
+        return user_msg, ast_msg
+
     async def add_message(
         self,
         session_id: uuid.UUID,
@@ -113,7 +181,6 @@ class ChatHistoryService:
 
         # Trigger fire-and-forget title generation if this is the assistant reply
         if role == "assistant":
-            # Fetch the latest user query in this session
             try:
                 stmt = (
                     select(ChatMessage)
@@ -123,8 +190,6 @@ class ChatHistoryService:
                 res = await self.db.execute(stmt)
                 user_msg = res.scalars().first()
                 user_query = user_msg.content if user_msg else "Chat Session"
-                
-                # Launch background title summary task without blocking the response
                 asyncio.create_task(_generate_and_save_title(session_id, user_query, content))
             except Exception as e:
                 logger.error(f"Failed to trigger background title generator: {e}")

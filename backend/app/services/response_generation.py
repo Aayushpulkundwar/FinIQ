@@ -14,11 +14,12 @@ def get_llm_model(provider: str):
     LLM Factory creating ChatGoogleGenerativeAI or ChatOpenAI chat model.
     """
     provider = provider.lower()
-    if provider == "gemini":
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        return ChatGoogleGenerativeAI(
-            google_api_key=settings.GEMINI_API_KEY,
-            model=settings.GEMINI_MODEL,
+    if provider in ("gemini", "openrouter"):
+        from langchain_openai import ChatOpenAI
+        return ChatOpenAI(
+            api_key=settings.OPENROUTER_API_KEY,
+            base_url=settings.OPENROUTER_BASE_URL,
+            model=settings.OPENROUTER_MODEL,
             temperature=0,
             max_retries=1,
         )
@@ -420,27 +421,61 @@ class ResponseGenerationService:
                         raise ValueError("Ollama response failed company grounding validation.")
             except Exception as parse_err:
                 logger.warning(
-                    f"ResponseGenerationService: JSON parse or grounding failed for provider={_provider_used} ({parse_err}). "
-                    "Response will be marked degraded and NOT cached."
+                    f"ResponseGenerationService: Initial JSON parse failed for provider={_provider_used} ({parse_err}). Attempting 1-time retry with reinforced JSON format..."
                 )
-                logger.debug(
-                    f"ResponseGenerationService: raw_text first 200 chars: {raw_text[:200]!r}"
-                )
-                err_type = "ollama_content_mismatch" if "grounding" in str(parse_err).lower() else "json_parse_failure"
-                err_msg = f"LLM response from {_provider_used} failed company grounding validation." if err_type == "ollama_content_mismatch" else f"LLM response from {_provider_used} could not be parsed as JSON: {parse_err}"
-                return AIResponse(
-                    executive_summary="AI response could not be verified for company grounding." if err_type == "ollama_content_mismatch" else "AI response could not be parsed as structured data.",
-                    key_insights=[],
-                    supporting_evidence=[],
-                    risks_limitations=[],
-                    sources=[],
-                    confidence_score=0.0,
-                    provider=f"{_provider_used}/{settings.OPENROUTER_MODEL}",
-                    generation_mode="fallback_error",
-                    is_degraded=True,
-                    error_message=err_msg,
-                    error_type=err_type,
-                )
+                # Option B: 1-time retry with explicit JSON format instruction
+                parsed = None
+                try:
+                    retry_messages = messages + [
+                        {"role": "assistant", "content": raw_text},
+                        {"role": "user", "content": "Your previous output was not valid JSON. Please return ONLY a valid JSON object matching the required keys (executive_summary, key_insights, supporting_evidence, risks_limitations, sources). Do NOT include markdown fences, preamble, or commentary."}
+                    ]
+                    retry_result = await openrouter_chat(
+                        messages=retry_messages,
+                        model=settings.OPENROUTER_MODEL,
+                        api_key=settings.OPENROUTER_API_KEY,
+                    )
+                    parsed = clean_and_parse_json(retry_result.content)
+                    exec_summary = parsed.get("executive_summary") or parsed.get("summary") or retry_result.content.strip()
+                    key_insights = parsed.get("key_insights") or []
+                    supporting_evidence = parsed.get("supporting_evidence") or []
+                    risks_limitations = parsed.get("risks_limitations") or []
+                    sources = parsed.get("sources") or []
+                    confidence_score = parsed.get("confidence_score")
+                    assumptions_used = parsed.get("assumptions_used")
+                    missing_inputs = parsed.get("missing_inputs_explanation")
+                    cited_sources = parsed.get("cited_sources_detailed")
+                    logger.info("ResponseGenerationService: 1-time JSON retry succeeded!")
+                except Exception as retry_err:
+                    logger.warning(f"ResponseGenerationService: 1-time retry also failed ({retry_err}).")
+
+                if not parsed:
+                    # Option A: Fall back to raw chunks synthesis if available
+                    if retrieved_chunks and company_details:
+                        logger.info("ResponseGenerationService: Falling back to _build_raw_chunks_fallback synthesis.")
+                        return await self._build_raw_chunks_fallback(
+                            user_query=user_query,
+                            retrieved_chunks=retrieved_chunks,
+                            company_details=company_details,
+                            provider=f"{_provider_used}/retry_failed",
+                            cache_key=cache_key
+                        )
+
+                    err_type = "ollama_content_mismatch" if "grounding" in str(parse_err).lower() else "json_parse_failure"
+                    err_msg = f"LLM response from {_provider_used} failed company grounding validation." if err_type == "ollama_content_mismatch" else f"LLM response from {_provider_used} could not be parsed as JSON: {parse_err}"
+                    return AIResponse(
+                        executive_summary="AI response could not be verified for company grounding." if err_type == "ollama_content_mismatch" else "AI response could not be parsed as structured data.",
+                        key_insights=[],
+                        supporting_evidence=[],
+                        risks_limitations=[],
+                        sources=[],
+                        confidence_score=0.0,
+                        provider=f"{_provider_used}/{settings.OPENROUTER_MODEL}",
+                        generation_mode="fallback_error",
+                        is_degraded=True,
+                        error_message=err_msg,
+                        error_type=err_type,
+                    )
 
             logger.info(
                 f"ResponseGenerationService: Response generated via provider={_provider_used} "
