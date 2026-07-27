@@ -15,7 +15,8 @@ import type {
 
 import { logNetwork } from '../utils/debugLogger';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:8000/api/v1' : '/api/v1');
+const API_HOST = import.meta.env.VITE_API_HOST || (import.meta.env.DEV ? 'http://localhost:8000' : '');
 
 async function loggedFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const start = performance.now();
@@ -310,7 +311,7 @@ export const api = {
 
   // Detailed Financials — live Yahoo Finance financials and ratios
   getDetailedFinancials: async (ticker: string): Promise<any> => {
-    const res = await loggedFetch(`http://localhost:8000/api/company/${ticker}/financials`);
+    const res = await loggedFetch(`${API_HOST}/api/company/${ticker}/financials`);
     return handleResponse<any>(res);
   },
 
