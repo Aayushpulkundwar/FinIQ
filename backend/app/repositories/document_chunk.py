@@ -16,6 +16,12 @@ class DocumentChunkRepository(BaseRepository[DocumentChunk]):
     def __init__(self, db: AsyncSession):
         super().__init__(DocumentChunk, db)
 
+    def _apply_active_document_filter(self, stmt):
+        """
+        Joins Document model and filters for is_active == True to exclude chunks belonging to superseded documents.
+        """
+        return stmt.join(Document, DocumentChunk.document_id == Document.id).where(Document.is_active == True)
+
     async def search_similarity(
         self,
         query_embedding: List[float],
@@ -40,6 +46,7 @@ class DocumentChunkRepository(BaseRepository[DocumentChunk]):
         if is_zero_vector:
             import re
             stmt = select(DocumentChunk).options(selectinload(DocumentChunk.document).selectinload(Document.company))
+            stmt = self._apply_active_document_filter(stmt)
             filters = []
             if not include_mock:
                 filters.append(DocumentChunk.is_mock_embedding == False)
@@ -81,6 +88,7 @@ class DocumentChunkRepository(BaseRepository[DocumentChunk]):
 
         # Build select query returning the entity and the score
         stmt = select(DocumentChunk, similarity_expr).options(selectinload(DocumentChunk.document).selectinload(Document.company))
+        stmt = self._apply_active_document_filter(stmt)
 
         # Apply metadata filters
         filters = []
@@ -132,6 +140,7 @@ class DocumentChunkRepository(BaseRepository[DocumentChunk]):
         rank_expr = func.ts_rank_cd(func.to_tsvector('english', DocumentChunk.chunk_text), func.plainto_tsquery('english', query_text)).label("rank")
 
         stmt = select(DocumentChunk, rank_expr).options(selectinload(DocumentChunk.document).selectinload(Document.company))
+        stmt = self._apply_active_document_filter(stmt)
 
         filters = [fts_filter]
         if not include_mock:

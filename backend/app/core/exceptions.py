@@ -6,7 +6,7 @@ from loguru import logger
 
 # Custom Application Exceptions
 class AppException(Exception):
-    """Base exception for FinsightAI application."""
+    """Base exception for FinIQ application."""
     def __init__(self, message: str, status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR):
         self.message = message
         self.status_code = status_code

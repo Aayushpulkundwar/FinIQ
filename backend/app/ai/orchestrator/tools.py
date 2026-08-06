@@ -10,6 +10,7 @@ from app.services.financial_intelligence import FinancialIntelligenceService
 from app.services.valuation import ValuationService
 from app.services.research_report import ResearchReportService
 from app.services.market_intelligence import MarketIntelligenceService
+from app.services.event_impact import EventImpactService
 from app.models.document import DocumentType
 
 
@@ -26,6 +27,7 @@ def create_tools(db: AsyncSession) -> Dict[str, StructuredTool]:
     valuation_service = ValuationService(db)
     research_report_service = ResearchReportService(db)
     market_intelligence_service = MarketIntelligenceService(db)
+    event_impact_service = EventImpactService(db)
 
     async def search_knowledge(
         query: str,
@@ -93,11 +95,24 @@ def create_tools(db: AsyncSession) -> Dict[str, StructuredTool]:
 
     async def get_company_by_ticker(ticker_symbol: str) -> Optional[Dict[str, Any]]:
         """
-        Retrieves corporate record profile metadata for a specific ticker symbol.
+        Retrieves corporate record profile metadata for a specific ticker symbol or company name.
         """
-        company = await company_service.repository.get_by_ticker(ticker_symbol.upper())
+        sym = ticker_symbol.strip()
+        company = await company_service.repository.get_by_ticker(sym.upper())
+        if not company:
+            # Fuzzy match by ticker prefix/substring or company name
+            companies = await company_service.repository.get_multi()
+            sym_clean = sym.lower().replace(".ns", "").replace(".bo", "").strip()
+            for c in companies:
+                c_ticker = c.ticker_symbol.lower().replace(".ns", "").replace(".bo", "").strip()
+                c_name = c.company_name.lower()
+                if sym_clean in c_ticker or c_ticker in sym_clean or sym_clean in c_name or (sym_clean and sym_clean in c_name.split()):
+                    company = c
+                    break
+
         if not company:
             return None
+
         return {
             "id": str(company.id),
             "company_name": company.company_name,
@@ -205,8 +220,6 @@ def create_tools(db: AsyncSession) -> Dict[str, StructuredTool]:
         )
         return result.model_dump()
 
-
-
     async def calculate_company_valuation(
         company_id: str,
         fiscal_year: Optional[int] = None,
@@ -251,6 +264,23 @@ def create_tools(db: AsyncSession) -> Dict[str, StructuredTool]:
             company_id=UUID(company_id) if company_id else None,
             industry=industry,
             limit=limit,
+        )
+        return result.model_dump()
+
+    async def analyze_event_impact(
+        user_query: str,
+        company_id: Optional[str] = None,
+        ticker_symbol: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Analyzes how a specific event, geopolitical conflict, macro shock, or industry event
+        impacts a target company by combining annual report risk factor disclosures and topic-scoped news.
+        Use for any event-impact question (e.g. 'how has the Iran-US war / oil price increase affected X?').
+        """
+        result = await event_impact_service.analyze_event_impact(
+            user_query=user_query,
+            company_id=company_id,
+            ticker_symbol=ticker_symbol,
         )
         return result.model_dump()
 
@@ -327,5 +357,13 @@ def create_tools(db: AsyncSession) -> Dict[str, StructuredTool]:
                 "Use for market news, headlines, market update, market sentiment, and market summary queries."
             ),
         ),
+        "analyze_event_impact": StructuredTool.from_function(
+            coroutine=analyze_event_impact,
+            name="analyze_event_impact",
+            description=(
+                "Analyzes how a specific event, geopolitical conflict, macro shock, or industry event "
+                "impacts a target company by combining annual report risk factor disclosures and topic-scoped news. "
+                "Use for any event-impact question (e.g. 'how has the Iran-US war / oil price increase affected X?')."
+            ),
+        ),
     }
-

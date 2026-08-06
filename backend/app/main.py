@@ -49,10 +49,10 @@ async def lifespan(app: FastAPI):
     else:
         logger.info("OpenRouter provider initialized successfully.")
 
-    logger.info("FinsightAI Backend application initialized successfully.")
+    logger.info("FinIQ Backend application initialized successfully.")
     yield
     # Shutdown tasks
-    logger.info("FinsightAI Backend application shutting down.")
+    logger.info("FinIQ Backend application shutting down.")
 
 
 app = FastAPI(
@@ -89,6 +89,6 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 async def root() -> dict:
     """Welcome root message API."""
     return {
-        "message": "Welcome to FinsightAI Investment Research Platform API!",
+        "message": "Welcome to FinIQ Investment Research Platform API!",
         "docs": "/docs",
     }

@@ -28,4 +28,12 @@ class AIResponse(BaseModel):
     )
     error_message: Optional[str] = Field(None, description="Detailed error/failure message if LLM call failed")
     error_type: Optional[str] = Field(None, description="Structured error category: 'rate_limited', 'json_parse_failure', 'api_error', etc.")
-
+    evidence_source_type: Optional[str] = Field(
+        None,
+        description=(
+            "Describes the actual data source used for evidence in this response. "
+            "Values: 'live_news' (RSS/APITube internet fetch), 'rag_documents' (PDF/DB vector chunks), "
+            "'mixed' (both sources present), 'none' (no evidence chunks). "
+            "Set by the backend; the frontend must use this field — never infer from chunk heuristics."
+        )
+    )

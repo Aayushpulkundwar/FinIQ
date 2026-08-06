@@ -5,6 +5,7 @@ import { useUIStore } from '../../store/useUIStore';
 import { FinancialsTab } from './FinancialsTab';
 import { ValuationTab } from './ValuationTab';
 import { MarketIntelTab } from './MarketIntelTab';
+import { CompanyNewsTab } from './CompanyNewsTab';
 import { Send, Sparkles, BookOpen, ChevronDown, ChevronUp, Trash2, AlertTriangle, ArrowLeft } from 'lucide-react';
 
 // Shared markdown components — provides dark-theme table, bold, code rendering
@@ -143,7 +144,7 @@ export const CenterWorkspace: React.FC = () => {
           <span style={{ fontSize: '0.88rem', color: '#f3f4f6', fontWeight: 700 }}>
             {selectedCompany ? selectedCompany.company_name : 'No Company Selected'} —{' '}
             <span style={{ color: '#10b981' }}>
-              {activeTab === 'financials' ? 'Financial Statements & Metrics' : activeTab === 'valuation' ? 'DCF Valuation Model' : 'Market Intelligence'}
+              {activeTab === 'financials' ? 'Financial Statements & Metrics' : activeTab === 'valuation' ? 'DCF Valuation Model' : activeTab === 'market' ? 'Market Intelligence' : 'Company News Feed'}
             </span>
           </span>
         </div>
@@ -155,7 +156,7 @@ export const CenterWorkspace: React.FC = () => {
           <Sparkles size={40} color="#10b981" style={{ marginBottom: '16px', opacity: 0.8 }} />
           <h3 style={{ color: '#f3f4f6', fontSize: '1.1rem', marginBottom: '8px' }}>No Company Selected</h3>
           <p style={{ fontSize: '0.9rem', maxWidth: '420px', lineHeight: 1.5 }}>
-            Select a portfolio company from the sidebar to view {activeTab === 'financials' ? 'financial statements' : activeTab === 'valuation' ? 'DCF valuation metrics' : 'market intelligence'}.
+            Select a portfolio company from the sidebar to view {activeTab === 'financials' ? 'financial statements' : activeTab === 'valuation' ? 'DCF valuation metrics' : activeTab === 'market' ? 'market intelligence' : 'company news feed'}.
           </p>
         </div>
       ) : activeTab === 'financials' && selectedCompany ? (
@@ -169,6 +170,10 @@ export const CenterWorkspace: React.FC = () => {
       ) : activeTab === 'market' && selectedCompany ? (
         <div className="analysis-view-container">
           <MarketIntelTab />
+        </div>
+      ) : activeTab === 'news' && selectedCompany ? (
+        <div className="analysis-view-container">
+          <CompanyNewsTab />
         </div>
       ) : (
         <>
@@ -314,9 +319,29 @@ export const CenterWorkspace: React.FC = () => {
                     <div>
                       {/* Executive Summary */}
                       <div style={{ marginBottom: '16px' }}>
-                        <h3 style={{ fontSize: '1.1rem', color: '#10b981', fontWeight: 600, marginBottom: '6px' }}>
-                          Executive Summary
-                        </h3>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                          <h3 style={{
+                            fontSize: '1.1rem',
+                            color: msg.content?.includes('[Basic News Fallback Summary]') ? '#f59e0b' : '#10b981',
+                            fontWeight: 600,
+                            margin: 0
+                          }}>
+                            {msg.content?.includes('[Basic News Fallback Summary]') ? '⚠️ Basic News Summary (LLM Fallback)' : 'Executive Summary'}
+                          </h3>
+                          {msg.content?.includes('[Basic News Fallback Summary]') && (
+                            <span style={{
+                              fontSize: '0.72rem',
+                              backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                              color: '#f59e0b',
+                              border: '1px solid rgba(245, 158, 11, 0.35)',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontWeight: 600
+                            }}>
+                              Basic Snippet Synthesis
+                            </span>
+                          )}
+                        </div>
                         <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
                           {msg.content}
                         </ReactMarkdown>
@@ -440,7 +465,18 @@ export const CenterWorkspace: React.FC = () => {
                       fontWeight: 600
                     }}
                   >
-                    <span>RAG Retrieve Accuracy Evidence (pgvector hits)</span>
+                    <span>
+                      {(() => {
+                        const est = msg.response?.evidence_source_type;
+                        if (est === 'live_news') return 'Live News & Web Sources Evidence';
+                        if (est === 'rag_documents') return 'Grounded Document Evidence (pgvector hits)';
+                        if (est === 'mixed') return 'Mixed Evidence: Live News + Documents';
+                        // Fallback for older responses without the field
+                        return msg.retrieved_chunks.some((c: any) => c.url)
+                          ? 'Live News & Web Sources Evidence'
+                          : 'Grounded Document Evidence (pgvector hits)';
+                      })()}
+                    </span>
                     {expandedChunks[msg.id] ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </div>
 
@@ -458,9 +494,28 @@ export const CenterWorkspace: React.FC = () => {
                           }}
                         >
                           <div className="flex-between" style={{ marginBottom: '6px', color: '#10b981', fontWeight: 600 }}>
-                            <span>Hit #{cIdx + 1}: {chunk.document_title || 'Document'}, Page {chunk.page_number}</span>
+                            <span>
+                              Hit #{cIdx + 1}: {chunk.document_title || 'Document'}
+                              {chunk.page_number !== null && chunk.page_number !== undefined
+                                ? `, Page ${chunk.page_number}`
+                                : chunk.published_at
+                                  ? ` · ${chunk.published_at.split('T')[0]}`
+                                  : ''}
+                              {chunk.url && (
+                                <a
+                                  href={chunk.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: '#06b6d4', marginLeft: '6px', textDecoration: 'underline' }}
+                                >
+                                  Link
+                                </a>
+                              )}
+                            </span>
                             <span style={{ fontFamily: 'monospace' }}>
-                              Score: {chunk.similarity_score !== undefined ? (chunk.similarity_score * 100).toFixed(1) : '91.2'}%
+                              {msg.response?.evidence_source_type === 'live_news' || (msg.response?.evidence_source_type == null && chunk.url)
+                                ? `Source: Web News${chunk.url ? '' : ''}`
+                                : `Score: ${chunk.similarity_score !== undefined ? (chunk.similarity_score * 100).toFixed(1) : '91.2'}%`}
                             </span>
                           </div>
                           <p style={{ color: '#d1d5db', lineHeight: 1.5 }}>
@@ -512,7 +567,7 @@ export const CenterWorkspace: React.FC = () => {
           </button>
         </form>
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#6b7280' }}>
-          <span>Grounded responses verified by AI Evaluation framework</span>
+          <span>FinIQ v1.5.0-rss · Grounded responses verified by AI Evaluation framework</span>
           <span>Press Enter to send</span>
         </div>
       </div>

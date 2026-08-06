@@ -66,3 +66,24 @@ async def analyze_event(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Event analysis failed: {e}"
         )
+
+
+@router.post("/impact")
+async def analyze_event_impact(
+    query: str,
+    company_id: str = None,
+    ticker: str = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Analyzes event impact combining vector search over annual report risk disclosures
+    and topic-scoped APITube news.
+    """
+    from app.services.event_impact import EventImpactService
+    service = EventImpactService(db)
+    res = await service.analyze_event_impact(
+        user_query=query,
+        company_id=company_id,
+        ticker_symbol=ticker,
+    )
+    return res.model_dump()

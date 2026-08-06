@@ -11,6 +11,8 @@ import type {
   RecommendationResponse,
   LivePriceResponse,
   HistoricalPricePoint,
+  CompanyNewsResponse,
+  TopMoversResponse,
 } from '../types';
 
 import { logNetwork } from '../utils/debugLogger';
@@ -52,16 +54,33 @@ async function loggedFetch(input: RequestInfo | URL, init?: RequestInit): Promis
   }
 }
 
+function extractErrorMessage(detail: any, defaultMsg: string = 'API Request Failed'): string {
+  if (!detail) return defaultMsg;
+  if (typeof detail === 'string') return detail;
+  if (typeof detail === 'object') {
+    if (typeof detail.reason === 'string' && detail.reason.trim()) return detail.reason;
+    if (typeof detail.message === 'string' && detail.message.trim()) return detail.message;
+    if (typeof detail.error === 'string' && detail.error.trim()) return detail.error;
+    try {
+      return JSON.stringify(detail);
+    } catch {
+      return defaultMsg;
+    }
+  }
+  return String(detail);
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    let errorDetail = 'API Request Failed';
+    let rawDetail: any = 'API Request Failed';
     try {
       const errorData = await response.json();
-      errorDetail = errorData.detail || errorDetail;
+      rawDetail = errorData.detail !== undefined ? errorData.detail : errorData;
     } catch {
       // Ignore if body is not JSON
     }
-    throw new Error(errorDetail);
+    const cleanMessage = extractErrorMessage(rawDetail, `API Request Failed (HTTP ${response.status})`);
+    throw new Error(cleanMessage);
   }
   return response.json() as Promise<T>;
 }
@@ -93,6 +112,12 @@ export const api = {
     return handleResponse<Company>(res);
   },
 
+  getCompanyNews: async (companyId: string, limit: number = 20): Promise<CompanyNewsResponse> => {
+    const res = await loggedFetch(`${API_BASE_URL}/companies/${companyId}/news?limit=${limit}`);
+    return handleResponse<CompanyNewsResponse>(res);
+  },
+
+
   // Documents
   listDocuments: async (): Promise<DocumentMetadata[]> => {
     const res = await loggedFetch(`${API_BASE_URL}/documents?limit=100`);
@@ -108,6 +133,12 @@ export const api = {
     file: File,
     onProgress?: (progress: number) => void
   ): Promise<DocumentMetadata> => {
+    const MAX_FILE_SIZE_BYTES = 200 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      throw new Error(`File size (${sizeMB}MB) exceeds maximum limit of 200MB.`);
+    }
+
     const formData = new FormData();
     formData.append('company_id', companyId);
     formData.append('title', title);
@@ -123,6 +154,9 @@ export const api = {
       const xhr = new XMLHttpRequest();
       const start = performance.now();
       xhr.open('POST', `${API_BASE_URL}/documents`);
+      
+      // Set generous 10-minute timeout for 200MB file uploads over slower connections
+      xhr.timeout = 600000;
 
       if (onProgress) {
         xhr.upload.onprogress = (event) => {
@@ -157,6 +191,12 @@ export const api = {
         const duration = Math.round(performance.now() - start);
         logNetwork('POST', `${API_BASE_URL}/documents`, 0, duration, 'Network error during upload');
         reject(new Error('Network error during upload'));
+      };
+
+      xhr.ontimeout = () => {
+        const duration = Math.round(performance.now() - start);
+        logNetwork('POST', `${API_BASE_URL}/documents`, 408, duration, 'Upload timeout');
+        reject(new Error('Upload timed out. 200MB uploads require a stable connection.'));
       };
 
       xhr.send(formData);
@@ -230,7 +270,8 @@ export const api = {
   analyzeInvestment: async (
     companyId: string,
     fiscalYear: number,
-    onProgress?: (msg: string) => void
+    onProgress?: (msg: string) => void,
+    forceRefresh: boolean = false
   ): Promise<InvestmentAnalyzeResponse> => {
     // 1. Enqueue the task
     const res = await loggedFetch(`${API_BASE_URL}/investment/analyze`, {
@@ -239,6 +280,7 @@ export const api = {
       body: JSON.stringify({
         company_id: companyId,
         fiscal_year: fiscalYear,
+        force_refresh: forceRefresh,
       }),
     });
     
@@ -346,5 +388,11 @@ export const api = {
   getHistory: async (id: string, range: string): Promise<HistoricalPricePoint[]> => {
     const res = await loggedFetch(`${API_BASE_URL}/companies/${id}/history?range=${range}`);
     return handleResponse<HistoricalPricePoint[]>(res);
+  },
+
+  // NSE Top Movers Ticker
+  getTopMovers: async (): Promise<TopMoversResponse> => {
+    const res = await loggedFetch(`${API_BASE_URL}/market/top-movers`);
+    return handleResponse<TopMoversResponse>(res);
   },
 };

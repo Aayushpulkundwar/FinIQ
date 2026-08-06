@@ -26,7 +26,7 @@ class FinancialPeriod(BaseModel):
     period_type: Mapped[PeriodType] = mapped_column(
         SQLEnum(PeriodType, name="periodtype"), nullable=False
     )
-    currency: Mapped[str] = mapped_column(String(10), nullable=False, default="USD")
+    currency: Mapped[str] = mapped_column(String(10), nullable=False)
 
     # Relationships
     statements = relationship("FinancialStatement", back_populates="period", cascade="all, delete-orphan")

@@ -27,7 +27,7 @@ class DcfDetails(BaseModel):
     terminal_value: float
     enterprise_value: float
     equity_value: float
-    shares_outstanding: float
+    shares_outstanding: Optional[float]
     intrinsic_share_price: float
 
 
@@ -59,7 +59,7 @@ class ValuationSummary(BaseModel):
     tax_rate_estimated: bool = False
     fcf_growth_estimated: bool = False
     as_of: Optional[str] = None
-    currency: Optional[str] = "USD"
+    currency: Optional[str] = None
 
     # Diagnostic flags populated by the valuation wrapper.
     # Examples: "double_clamp_detected", "extreme_deviation_flagged".

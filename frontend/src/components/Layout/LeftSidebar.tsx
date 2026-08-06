@@ -5,6 +5,7 @@ import {
   TrendingUp,
   DollarSign,
   Award,
+  Newspaper,
   Search,
   History,
 } from 'lucide-react';
@@ -240,6 +241,7 @@ export const LeftSidebar: React.FC = () => {
             { id: 'financials', label: 'Financials', icon: <TrendingUp size={15} /> },
             { id: 'valuation', label: 'Valuation (DCF)', icon: <DollarSign size={15} /> },
             { id: 'market', label: 'Market Intel', icon: <Award size={15} /> },
+            { id: 'news', label: 'Company News', icon: <Newspaper size={15} /> },
           ].map((item) => {
             const isActive = activeTab === item.id;
             return (

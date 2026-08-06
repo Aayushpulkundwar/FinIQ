@@ -1,27 +1,29 @@
-version: '3.8'
+name: finiq
 
 services:
   db:
     image: ankane/pgvector:v0.5.1
-    container_name: finsightai_db
+    container_name: finiq_db
     restart: always
+    env_file:
+      - .env
     environment:
-      POSTGRES_DB: finsightai
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-finiq}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: finsightai_redis
+    container_name: finiq_redis
     restart: always
     ports:
       - "6379:6379"
@@ -35,14 +37,16 @@ services:
 
   minio:
     image: minio/minio:RELEASE.2024-01-28T22-35-53Z
-    container_name: finsightai_minio
+    container_name: finiq_minio
     restart: always
     ports:
       - "9000:9000"
       - "9001:9001"
+    env_file:
+      - .env
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
@@ -52,11 +56,14 @@ services:
       timeout: 5s
       retries: 5
 
-  web:
+  # Note: If an Nginx or reverse proxy service is added in front of Uvicorn in production,
+  # ensure 'client_max_body_size 200M;' is set to allow 200MB uploads.
+  api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: finsightai_web
+    image: finiq-api:latest
+    container_name: finiq_web
     restart: always
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     ports:
@@ -69,6 +76,7 @@ services:
       - ENVIRONMENT=development
       - POSTGRES_SERVER=db
       - POSTGRES_PORT=5432
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-finiq}
       - REDIS_HOST=redis
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -80,14 +88,21 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   celery_worker:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: finsightai_celery
+    image: finiq-api:latest
+    container_name: finiq_celery
     restart: always
-    command: celery -A app.core.celery_app worker --loglevel=info
+    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=1 -B
     volumes:
       - .:/app
     env_file:
@@ -96,6 +111,7 @@ services:
       - ENVIRONMENT=development
       - POSTGRES_SERVER=db
       - POSTGRES_PORT=5432
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-finiq}
       - REDIS_HOST=redis
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0

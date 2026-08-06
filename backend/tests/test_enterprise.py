@@ -126,7 +126,7 @@ def test_observability_middleware_headers(client: TestClient):
 # ── 5. Enterprise Authentication & Portfolio CRUD Tests ────────────────────────
 
 def test_user_auth_register_and_login(client: TestClient):
-    email = "analyst-test@finsight.ai"
+    email = "analyst-test@finiq.ai"
     reg_payload = {
         "email": email,
         "password": "secretpassword",

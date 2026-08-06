@@ -14,7 +14,7 @@ def mock_storage():
     """Mock StorageService to prevent actual calls to MinIO."""
     with patch("app.services.document.StorageService") as MockStorage:
         instance = MockStorage.return_value
-        instance.upload_file.return_value = "finsightai-documents/test-path.pdf"
+        instance.upload_file.return_value = "finiq-documents/test-path.pdf"
         instance.delete_file.return_value = None
         yield instance
 
@@ -62,6 +62,7 @@ async def test_document_service_upload_success(mock_storage, mock_tasks):
     # Prepare mock file
     mock_file = AsyncMock()
     mock_file.filename = "report.pdf"
+    mock_file.size = 100
     mock_file.read.return_value = b"mockpdfcontent"
     mock_file.content_type = "application/pdf"
 
@@ -81,8 +82,8 @@ async def test_document_service_upload_success(mock_storage, mock_tasks):
     assert result.title == "Annual Report 2026"
     assert result.upload_status == UploadStatus.completed
 
-    # Verify storage upload called
-    mock_storage.upload_file.assert_called_once()
+    # Verify storage upload stream called
+    mock_storage.upload_stream.assert_called_once()
     # Verify celery task queued
     mock_tasks.assert_called_once_with(str(doc_id))
 
@@ -111,25 +112,66 @@ async def test_document_service_upload_invalid_extension():
 
 @pytest.mark.asyncio
 async def test_document_service_upload_exceeds_size():
-    """Verify DocumentService rejects files exceeding configured size limit."""
+    """Verify DocumentService rejects files exceeding configured 200MB size limit."""
     db_mock = AsyncMock()
     service = DocumentService(db_mock)
 
     mock_file = AsyncMock()
-    mock_file.filename = "large.pdf"
-    # Return larger than 10MB bytes
-    mock_file.read.return_value = b"x" * (11 * 1024 * 1024)
+    mock_file.filename = "too_large.pdf"
+    mock_file.content_type = "application/pdf"
+    mock_file.size = 201 * 1024 * 1024
 
     with pytest.raises(ValueError) as exc_info:
         await service.upload_document(
             company_id=uuid4(),
-            title="Large File",
+            title="Too Large File",
             document_type=DocumentType.other,
             fiscal_year=2026,
             quarter=None,
             file=mock_file,
         )
     assert "exceeds maximum limit" in str(exc_info.value)
+
+
+@pytest.mark.asyncio
+async def test_document_service_upload_valid_large_file():
+    """Verify DocumentService accepts valid large file uploads (~150MB)."""
+    db_mock = AsyncMock()
+    service = DocumentService(db_mock)
+    service.storage = MagicMock()
+
+    import io
+    mock_file = AsyncMock()
+    mock_file.filename = "valid_150mb.pdf"
+    mock_file.content_type = "application/pdf"
+    
+    # 150MB file size simulation
+    valid_size = 150 * 1024 * 1024
+    mock_file.size = valid_size
+    fake_stream = io.BytesIO(b"header_data" + b"0" * 1024)
+    underlying_file = MagicMock()
+    underlying_file.tell.return_value = valid_size
+    underlying_file.read.side_effect = lambda size=-1: fake_stream.read(size)
+    mock_file.file = underlying_file
+
+    # Mock DB calls
+    service.repository.db.execute.return_value.scalars.return_value.first.return_value = None
+    mock_doc = MagicMock()
+    mock_doc.id = uuid4()
+    mock_doc.mime_type = "application/pdf"
+    service.repository.create = AsyncMock(return_value=mock_doc)
+
+    with patch("app.services.document.process_document_task") as mock_task:
+        result = await service.upload_document(
+            company_id=uuid4(),
+            title="Valid Large File",
+            document_type=DocumentType.other,
+            fiscal_year=2026,
+            quarter=None,
+            file=mock_file,
+        )
+        assert result is not None
+        assert service.storage.upload_stream.called
 
 
 def test_api_upload_document(client: TestClient):

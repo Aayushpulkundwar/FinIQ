@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """
-    Centralized configuration management for FinsightAI.
+    Centralized configuration management for FinIQ.
     Loads values from environment variables or a local .env file.
     Validates variables on startup, enforcing stricter rules in staging/production.
     """
@@ -21,11 +21,11 @@ class Settings(BaseSettings):
     # =================================================================---------
     # 1. App Configuration
     # =================================================================---------
-    PROJECT_NAME: str = "FinsightAI"
+    PROJECT_NAME: str = "FinIQ"
     VERSION: str = "0.1.0"
     ENVIRONMENT: Literal["local", "development", "staging", "production"] = "local"
     DEBUG: bool = True
-    MAX_FILE_SIZE_BYTES: int = 10 * 1024 * 1024  # Configurable file upload size limit (10MB default)
+    MAX_FILE_SIZE_BYTES: int = 200 * 1024 * 1024  # Configurable file upload size limit (200MB default)
 
     # =================================================================---------
     # 2. API Configuration
@@ -55,11 +55,19 @@ class Settings(BaseSettings):
     POSTGRES_PORT: int = 5432
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
-    POSTGRES_DB: str = "finsightai"
+    POSTGRES_DB: str = "finiq"
+    DATABASE_URL: Optional[str] = None
 
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
         """Async connection URI for the FastAPI application (using asyncpg)."""
+        if self.DATABASE_URL:
+            url = self.DATABASE_URL
+            if url.startswith("postgresql://"):
+                return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            elif url.startswith("postgres://"):
+                return url.replace("postgres://", "postgresql+asyncpg://", 1)
+            return url
         return (
             f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
@@ -68,6 +76,13 @@ class Settings(BaseSettings):
     @property
     def SQLALCHEMY_SYNC_DATABASE_URI(self) -> str:
         """Sync connection URI for database migrations (using psycopg2)."""
+        if self.DATABASE_URL:
+            url = self.DATABASE_URL
+            if url.startswith("postgresql+asyncpg://"):
+                return url.replace("postgresql+asyncpg://", "postgresql://", 1)
+            elif url.startswith("postgres://"):
+                return url.replace("postgres://", "postgresql://", 1)
+            return url
         return (
             f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
             f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
@@ -92,15 +107,45 @@ class Settings(BaseSettings):
     EMBEDDING_SUB_BATCH_SIZE: int = 10
     ALLOW_MOCK_LLM: bool = False
 
-    # Ollama (used exclusively for embeddings via /api/embed — NOT for LLM generation)
+    # Ollama settings (used for embeddings via /api/embed and LLM generation fallback)
     OLLAMA_BASE_URL: str = "http://host.docker.internal:11434"
     OLLAMA_MODEL: str = "llama3:8b"
+    OLLAMA_GENERATION_ENABLED: bool = True
+    OLLAMA_GENERATION_MODEL: str = "llama3:8b"
 
-    # OpenRouter — hosted LLM API (OpenAI-compatible, replaces local phi3:mini)
-    # Set OPENROUTER_API_KEY in .env. Get a key at https://openrouter.ai/keys
+    # API Keys
     OPENROUTER_API_KEY: Optional[str] = None
+    OPENAI_API_KEY: Optional[str] = None
+    GOOGLE_API_KEY: Optional[str] = None
+    GEMINI_API_KEY: Optional[str] = None
     OPENROUTER_MODEL: str = "openrouter/free"
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+
+    # APITube settings (legacy/optional)
+    APITUBE_API_KEY: Optional[str] = None
+    APITUBE_BASE_URL: str = "https://api.apitube.io"
+
+    # RSS News configuration
+    RSS_NEWS_FRESHNESS_DAYS: int = 14
+    RSS_NEWS_MAX_RESULTS: int = 10
+    RSS_FEED_URLS: List[str] = [
+        "https://economictimes.indiatimes.com/markets/rssfeeds/1977021501.cms",
+        "https://www.moneycontrol.com/rss/MCtopnews.xml",
+        "https://www.business-standard.com/rss/companies-101.rss",
+    ]
+
+    # NVIDIA Nemotron Parse v1.2 & OCR Subsystem Configuration
+    NEMOTRON_HOST: str = "34.100.175.30"
+    NEMOTRON_PORT: int = 8001
+    NEMOTRON_MODEL: str = "nvidia/NVIDIA-Nemotron-Parse-v1.2"
+    NEMOTRON_API_KEY: Optional[str] = None
+    OCR_PAGE_TEXT_THRESHOLD: int = 80
+    OCR_MAX_CONCURRENT_REQUESTS: int = 5
+    OCR_CACHE_ENABLED: bool = True
+    OCR_CACHE_DIR: str = ".cache/ocr"
+    OCR_RETRY_COUNT: int = 3
+    OCR_RETRY_BACKOFF: float = 2.0
+    OCR_IMAGE_DPI: int = 200
 
     # Primary LLM provider selection (now exclusively openrouter)
     PRIMARY_LLM_PROVIDER: str = "openrouter"
@@ -109,6 +154,7 @@ class Settings(BaseSettings):
     # 6. JWT Authentication Configuration
     # =================================================================---------
     JWT_SECRET_KEY: str = "placeholder-jwt-secret-key-for-local-dev-only"
+    SECRET_KEY: Optional[str] = None
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
@@ -118,7 +164,9 @@ class Settings(BaseSettings):
     MINIO_ENDPOINT: str = "localhost:9000"
     MINIO_ACCESS_KEY: str = "minioadmin"
     MINIO_SECRET_KEY: str = "minioadmin"
-    MINIO_BUCKET_NAME: str = "finsightai-documents"
+    MINIO_ROOT_USER: Optional[str] = None
+    MINIO_ROOT_PASSWORD: Optional[str] = None
+    MINIO_BUCKET_NAME: str = "finiq-documents"
     MINIO_SECURE: bool = False
 
     # =================================================================---------
@@ -136,6 +184,14 @@ class Settings(BaseSettings):
         1. Auto-assembles Celery Broker/Backend URLs if they are not provided explicitly.
         2. Enforces strict production checks to satisfy the 12-Factor App design.
         """
+        # Aliases and Fallbacks
+        if self.SECRET_KEY and self.JWT_SECRET_KEY == "placeholder-jwt-secret-key-for-local-dev-only":
+            self.JWT_SECRET_KEY = self.SECRET_KEY
+        if self.MINIO_ROOT_USER and self.MINIO_ACCESS_KEY == "minioadmin":
+            self.MINIO_ACCESS_KEY = self.MINIO_ROOT_USER
+        if self.MINIO_ROOT_PASSWORD and self.MINIO_SECRET_KEY == "minioadmin":
+            self.MINIO_SECRET_KEY = self.MINIO_ROOT_PASSWORD
+
         # 1. Celery dynamic URLs setup
         password_part = f":{self.REDIS_PASSWORD}@" if self.REDIS_PASSWORD else ""
         if not self.CELERY_BROKER_URL:

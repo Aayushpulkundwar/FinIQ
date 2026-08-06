@@ -1,0 +1,2528 @@
+﻿{
+    "items":  "50",
+    "sentiment_score_definition":  "x \u003c= -0.35: Bearish; -0.35 \u003c x \u003c= -0.15: Somewhat-Bearish; -0.15 \u003c x \u003c 0.15: Neutral; 0.15 \u003c= x \u003c 0.35: Somewhat_Bullish; x \u003e= 0.35: Bullish",
+    "relevance_score_definition":  "0 \u003c x \u003c= 1, with a higher score indicating higher relevance.",
+    "feed":  [
+                 {
+                     "title":  "Aberdeen Group plc Buys ProQR Therapeutics NV (PRQR) -- Shares L",
+                     "url":  "https://www.gurufocus.com/news/9004062/aberdeen-group-plc-buys-proqr-therapeutics-nv-prqr-shares-look-11-undervalued-on-gf-value",
+                     "time_published":  "20260805T014141",
+                     "authors":  [
+                                     "GuruFocus.com"
+                                 ],
+                     "summary":  "Aberdeen Group plc significantly increased its stake in ProQR Therapeutics NV (PRQR) by purchasing over 5.6 million shares at $1.86 each, bringing their total ownership to 6.33%. Despite ProQR\u0027s low GF-Score and financial challenges typical of early-stage biopharmaceutical companies, GuruFocus assesses it as \"Modestly Undervalued\" with an 11% discount to its intrinsic value, suggesting a long-term conviction in its RNA therapeutics platform. This move by Aberdeen highlights a strategy to identify undervalued opportunities in high-growth sectors, particularly in the risky but potentially rewarding biopharmaceutical space.",
+                     "banner_image":  "https://userupload.gurufocus.com/cdn-cgi/image/width=600,quality=100/2084802126890049536.png",
+                     "source":  "GuruFocus",
+                     "category_within_source":  "General",
+                     "source_domain":  "GuruFocus",
+                     "topics":  [
+                                    {
+                                        "topic":  "life_sciences",
+                                        "relevance_score":  "0.909884"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.800674"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.701137"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.304257,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "PRQR",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.111801",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.641078",
+                                                  "ticker_sentiment_score":  "0.332112",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AMZN",
+                                                  "relevance_score":  "0.611789",
+                                                  "ticker_sentiment_score":  "0.307201",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "GOOGL",
+                                                  "relevance_score":  "0.636657",
+                                                  "ticker_sentiment_score":  "0.342293",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "MSFT",
+                                                  "relevance_score":  "0.612662",
+                                                  "ticker_sentiment_score":  "0.334377",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "OpenAI publicly pushes back against Apple lawsuit after new filing",
+                     "url":  "https://siliconangle.com/2026/08/04/openai-publicly-pushes-back-apple-lawsuit-new-filing/",
+                     "time_published":  "20260804T223700",
+                     "authors":  [
+                                     "Maria Deutscher"
+                                 ],
+                     "summary":  "OpenAI has publicly countered Apple\u0027s lawsuit, which accuses the ChatGPT developer of stealing intellectual property to support its entry into the consumer electronics market. OpenAI\u0027s blog post, including internal correspondence, aims to weaken Apple\u0027s claims regarding former employees Chang Liu and Tang Tan, and an alleged email mix-up. Apple is seeking an expedited discovery process and a preliminary injunction against OpenAI, which plans to launch AI-powered devices like a smart speaker next year.",
+                     "banner_image":  "https://s3.us-west-2.amazonaws.com/cube365-prod/related-content/e810e50d-1091-4ce3-9cc2-0232848a8d60.png",
+                     "source":  "SiliconANGLE",
+                     "category_within_source":  "General",
+                     "source_domain":  "SiliconANGLE",
+                     "topics":  [
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.936177"
+                                    }
+                                ],
+                     "overall_sentiment_score":  -0.229579,
+                     "overall_sentiment_label":  "Somewhat-Bearish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "-0.245510",
+                                                  "ticker_sentiment_label":  "Somewhat-Bearish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "OpenAI Called Appleâs Lawsuit âOddly Personal.â Apple Says the Real Issue Is Stolen Secrets",
+                     "url":  "https://www.inc.com/georgia-fearn/openai-called-apples-lawsuit-oddly-personal-apple-says-the-real-issue-is-stolen-secrets/91384409",
+                     "time_published":  "20260804T222958",
+                     "authors":  [
+                                     "GEORGIA FEARN"
+                                 ],
+                     "summary":  "A legal battle between Apple and OpenAI has intensified after OpenAI publicly released private employee messages and attorney emails to counter Apple\u0027s trade secret theft claims. Apple\u0027s lawsuit alleges that OpenAI exploited job interviews to gather confidential information and physical components, using this data to advance its hardware business. OpenAI, however, argues that Apple\u0027s case is partly based on its own security vulnerabilities and misrepresents their communications, while Apple maintains the released messages address irrelevant activity.",
+                     "banner_image":  "https://img-cdn.inc.com/image/upload/f_webp,c_fit,w_1920,q_auto/vip/2026/08/openai-apple-beef-sam-altman-tim-cook-inc-2198164367.jpg",
+                     "source":  "Inc.com",
+                     "category_within_source":  "General",
+                     "source_domain":  "Inc.com",
+                     "topics":  [
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "1.000000"
+                                    }
+                                ],
+                     "overall_sentiment_score":  -0.255984,
+                     "overall_sentiment_label":  "Somewhat-Bearish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "-0.276797",
+                                                  "ticker_sentiment_label":  "Somewhat-Bearish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Western Union and Rain Launch Stablecoin Card in 37 Markets",
+                     "url":  "https://thedefiant.io/converge/tradfi-and-fintech/western-union-and-rain-launch-stablecoin-card-in-37-markets",
+                     "time_published":  "20260804T181002",
+                     "authors":  [
+                                     "The Defiant Team"
+                                 ],
+                     "summary":  "Western Union and Rain have launched Stablecard, a digital wallet and Visa card that allows users to receive remittances as USDPT stablecoin and spend it at any Visa merchant. This initiative expands Western Union\u0027s blockchain integration into a consumer-facing product, targeting 37 markets with plans to reach over 60 by year-end, particularly in regions with unstable local currencies. The move comes as Western Union aims to grow its digital and consumer services amid a shrinking core business.",
+                     "banner_image":  "https://thedefiant.io/_next/image?url=https%3A%2F%2Fcdn.thedefiant.io%2Fwestern-union-thumbnail-jpg-2133e62a-5313-485f-86a5-aca4165d1abe.jpg\u0026w=1920\u0026q=100",
+                     "source":  "The Defiant",
+                     "category_within_source":  "General",
+                     "source_domain":  "The Defiant",
+                     "topics":  [
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.942746"
+                                    },
+                                    {
+                                        "topic":  "blockchain",
+                                        "relevance_score":  "0.832576"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.700584"
+                                    },
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.601426"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.236141,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "WU",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "-0.081222",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "V",
+                                                  "relevance_score":  "0.710887",
+                                                  "ticker_sentiment_score":  "0.337778",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.610904",
+                                                  "ticker_sentiment_score":  "0.271991",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "GOOGL",
+                                                  "relevance_score":  "0.619028",
+                                                  "ticker_sentiment_score":  "0.257161",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "GOOG",
+                                                  "relevance_score":  "0.610193",
+                                                  "ticker_sentiment_score":  "0.270298",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Digital Turbine set to report earnings amid app distribution shift",
+                     "url":  "https://m.investing.com/news/earnings/digital-turbine-set-to-report-earnings-amid-app-distribution-shift-93CH-4835313?ampMode=1",
+                     "time_published":  "20260804T170943",
+                     "authors":  [
+                                     "Investing.com"
+                                 ],
+                     "summary":  "Digital Turbine is preparing to report its first-quarter fiscal 2027 earnings, with analysts expecting 9 cents per share on $145 million in revenue, a 10.8% increase year-over-year. Investors will be closely watching for signs of the mobile ad-tech company\u0027s turnaround sustainability amidst margin pressures and its strategic shift towards its new Launchpad app distribution platform, especially following its sale of AdColony assets. The company\u0027s ability to maintain growth and profitability while capitalizing on alternative app stores and AI-powered distribution will be key.",
+                     "banner_image":  "https://i-invdn-com.investing.com/msite/img/install_apps/mobile-icon-banner.svg",
+                     "source":  "Investing.com",
+                     "category_within_source":  "General",
+                     "source_domain":  "Investing.com",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.900359"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.839073"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.114247,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "APPS",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.270797",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.717626",
+                                                  "ticker_sentiment_score":  "0.025733",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "GOOGL",
+                                                  "relevance_score":  "0.646332",
+                                                  "ticker_sentiment_score":  "0.035376",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Nrg Energy stock hits 52-week low at 120.11 USD By Investing.com",
+                     "url":  "https://ca.investing.com/news/stock-market-news/nrg-energy-stock-hits-52week-low-at-12011-usd-93CH-4774826",
+                     "time_published":  "20260804T154420",
+                     "authors":  [
+                                     "Investing.com"
+                                 ],
+                     "summary":  "NRG Energy Inc.\u0027s stock recently hit a 52-week low of $120.11, despite a subsequent 8.94% rebound, and is considered slightly undervalued by InvestingPro. The company faces challenges, evident from a 29.72% decline over the past year, but management has been actively buying back shares and consistently raising dividends. Recent Q2 2026 earnings showed mixed results with an earnings per share miss but exceeded revenue expectations and a significant EBITDA increase, alongside a new data-center project in Texas.",
+                     "banner_image":  "https://i-invdn-com.investing.com/news/LYNXMPEM4C1QN_1200_L.jpg",
+                     "source":  "Investing.com Canada",
+                     "category_within_source":  "General",
+                     "source_domain":  "Investing.com Canada",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.932952"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.814281"
+                                    },
+                                    {
+                                        "topic":  "energy_transportation",
+                                        "relevance_score":  "0.719359"
+                                    },
+                                    {
+                                        "topic":  "economy_macro",
+                                        "relevance_score":  "0.638867"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.080697,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "NRG",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "-0.172702",
+                                                  "ticker_sentiment_label":  "Somewhat-Bearish"
+                                              },
+                                              {
+                                                  "ticker":  "AVGO",
+                                                  "relevance_score":  "0.530363",
+                                                  "ticker_sentiment_score":  "0.228921",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.534031",
+                                                  "ticker_sentiment_score":  "0.087766",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "TSLA",
+                                                  "relevance_score":  "0.530532",
+                                                  "ticker_sentiment_score":  "0.104656",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Ford Is Teaming Up With Apple For Its New Lineup Of EVs",
+                     "url":  "https://www.slashgear.com/2229473/ford-apple-maps-uev-partnership-announcement/",
+                     "time_published":  "20260804T144435",
+                     "authors":  [
+                                     "Patrick Phillips"
+                                 ],
+                     "summary":  "Ford Motor Company has announced a partnership with Apple to integrate Apple Maps as the primary navigation system in some of its upcoming electric vehicles. This integration will utilize Apple\u0027s MapKit for Automotive SDK, providing enhanced navigation features without needing a connected phone. The technology will first appear in Ford\u0027s new Universal Electric Vehicle (UEV) models, starting in 2027, which are designed to be more affordable, with a target MSRP of around $30,000.",
+                     "banner_image":  "https://www.slashgear.com/img/gallery/ford-is-teaming-up-with-apple-for-its-new-lineup-of-evs/intro-1785786213.jpg",
+                     "source":  "SlashGear",
+                     "category_within_source":  "General",
+                     "source_domain":  "SlashGear",
+                     "topics":  [
+                                    {
+                                        "topic":  "energy_transportation",
+                                        "relevance_score":  "0.934337"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.817806"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.318346,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "F",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.310074",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.920602",
+                                                  "ticker_sentiment_score":  "0.306856",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "United Bankshares stock hits 52-week high at 49.28 USD By Investing.com",
+                     "url":  "https://ca.investing.com/news/stock-market-news/united-bankshares-stock-hits-52week-high-at-4928-usd-93CH-4774642",
+                     "time_published":  "20260804T144104",
+                     "authors":  [
+
+                                 ],
+                     "summary":  "United Bankshares Inc. (UBSI) stock recently hit a 52-week high of $49.28, reflecting strong investor confidence and a 42% total return over the past year. The company\u0027s valuation appears attractive with a P/E ratio of ~13.4 and a low PEG ratio of 0.44, and it has consistently raised its dividend for 37 consecutive years, currently yielding 3.11%. This surge follows an earnings beat in the second quarter, where the company surpassed analyst expectations with $0.95 per diluted share.",
+                     "banner_image":  "https://i-invdn-com.investing.com/news/UnitedBankshares_800x533_L_1761939471.jpg",
+                     "source":  "Investing.com Canada",
+                     "category_within_source":  "General",
+                     "source_domain":  "Investing.com Canada",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.918999"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.935506"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.833567"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.3849,
+                     "overall_sentiment_label":  "Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "UBSI",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.478397",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AVGO",
+                                                  "relevance_score":  "0.638115",
+                                                  "ticker_sentiment_score":  "0.312860",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.608027",
+                                                  "ticker_sentiment_score":  "0.324346",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "TSLA",
+                                                  "relevance_score":  "0.608407",
+                                                  "ticker_sentiment_score":  "0.314074",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Replimune Group : REPL",
+                     "url":  "https://247wallst.com/companies/repl?tpid=1635515\u0026tv=link\u0026tc=in_content",
+                     "time_published":  "20260804T130918",
+                     "authors":  [
+
+                                 ],
+                     "summary":  "This article provides an overview of Replimune Group Inc. (REPL), a biotechnology firm specializing in oncolytic immunotherapies for cancer treatment. It",
+                     "banner_image":  null,
+                     "source":  "24/7 Wall St.",
+                     "category_within_source":  "General",
+                     "source_domain":  "24/7 Wall St.",
+                     "topics":  [
+                                    {
+                                        "topic":  "life_sciences",
+                                        "relevance_score":  "0.908765"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.848314"
+                                    },
+                                    {
+                                        "topic":  "economy_macro",
+                                        "relevance_score":  "0.606946"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.193913,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "REPL",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.477585",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "XOM",
+                                                  "relevance_score":  "0.647126",
+                                                  "ticker_sentiment_score":  "0.147794",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.600512",
+                                                  "ticker_sentiment_score":  "0.135604",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "EBAY",
+                                                  "relevance_score":  "0.628077",
+                                                  "ticker_sentiment_score":  "0.121744",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "INTU",
+                                                  "relevance_score":  "0.622098",
+                                                  "ticker_sentiment_score":  "0.125146",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Is FlexShares Morningstar U.S. Market Factor Tilt ETF (TILT) a Strong ETF Right Now?",
+                     "url":  "https://finance.yahoo.com/markets/stocks/articles/flexshares-morningstar-u-market-factor-102002452.html",
+                     "time_published":  "20260804T103926",
+                     "authors":  [
+                                     "Zacks Equity Research"
+                                 ],
+                     "summary":  "The FlexShares Morningstar U.S. Market Factor Tilt ETF (TILT), launched in 2011, offers broad exposure to the Style Box - All Cap Blend category, focusing on small-capitalization and value stocks. With over $2.22 billion in assets and an expense ratio of 0.25%, TILT has generated a year-to-date return of 13.36% and a 12-month return of 26.18%. The fund\u0027s top holdings include Nvidia, Apple, and Microsoft, with significant allocation to the Information Technology sector.",
+                     "banner_image":  "https://s.yimg.com/lo/mysterio/api/11A4AD7C98BFF416B78DB68AE17DCB88534B48987B1B61241F7ECE62FFED06B8/subgraphmysterio/resizefit_w960_h642;quality_80;format_webp/https:%2F%2Fmedia.zenfs.com%2Fen%2Fzacks.com%2F45c083e4721b0d0d1f6e431ec0bb5cc1",
+                     "source":  "Yahoo Finance",
+                     "category_within_source":  "General",
+                     "source_domain":  "Yahoo Finance",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.911396"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.30915,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "TILT",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.337699",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "NVDA",
+                                                  "relevance_score":  "0.732429",
+                                                  "ticker_sentiment_score":  "0.275759",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.652160",
+                                                  "ticker_sentiment_score":  "0.252065",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "MSFT",
+                                                  "relevance_score":  "0.648444",
+                                                  "ticker_sentiment_score":  "0.295168",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "GSLC ETF Profile: Dividends, Returns (BIVA:GSLC)",
+                     "url":  "https://www.tradingview.com/symbols/BIVA-GSLC/profile/",
+                     "time_published":  "20260804T101109",
+                     "authors":  [
+
+                                 ],
+                     "summary":  "This article provides a detailed profile of the GSLC ETF, focusing on its dividends and returns. It includes key statistics such as Assets Under Management (AUM), expense ratio, and dividend yield, along with a breakdown of its holdings by sector and region. The fund, issued by Goldman Sachs Group, Inc., invests in stocks across various sectors like Electronic Technology and Technology Services, and tracks the Stuttgart Goldman Sachs ActiveBeta US Large Cap (USD) index.",
+                     "banner_image":  "https://s3-symbol-logo.tradingview.com/golden-sachs-etf-trust-goldman--big.svg",
+                     "source":  "TradingView",
+                     "category_within_source":  "General",
+                     "source_domain":  "TradingView",
+                     "topics":  [
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.914817"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.827903"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.645012"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.336939,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "GSLC",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.334416",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "GS",
+                                                  "relevance_score":  "0.802338",
+                                                  "ticker_sentiment_score":  "0.303425",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "NVDA",
+                                                  "relevance_score":  "0.635288",
+                                                  "ticker_sentiment_score":  "0.312560",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.649139",
+                                                  "ticker_sentiment_score":  "0.306355",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Pacer Advisors Inc. Cuts Position in Cirrus Logic, Inc. $CRUS",
+                     "url":  "https://www.marketbeat.com/instant-alerts/filing-pacer-advisors-inc-cuts-position-in-cirrus-logic-inc-crus-2026-08-04/",
+                     "time_published":  "20260804T094028",
+                     "authors":  [
+                                     "MarketBeat"
+                                 ],
+                     "summary":  "Pacer Advisors Inc. reduced its stake in Cirrus Logic (NASDAQ:CRUS) by 2.9% in the first quarter, selling 12,145 shares but still holding 409,281 shares valued at $59.2 million. Despite this, other institutional investors have increased their positions, and 87.96% of the company\u0027s stock is held by institutional investors. Cirrus Logic recently beat earnings estimates with $1.95 per share and saw a 5.7% revenue increase year-over-year, yet its shares opened down 1.6% at $127.33.",
+                     "banner_image":  "https://www.marketbeat.com/logos/cirrus-logic-inc-logo-1200x675.png?v=20240425091016",
+                     "source":  "MarketBeat",
+                     "category_within_source":  "General",
+                     "source_domain":  "MarketBeat",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.917031"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.844351"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.744133"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.148514,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "CRUS",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.141128",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.708463",
+                                                  "ticker_sentiment_score":  "0.119932",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "QCOM",
+                                                  "relevance_score":  "0.606404",
+                                                  "ticker_sentiment_score":  "0.143788",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "TXN",
+                                                  "relevance_score":  "0.627119",
+                                                  "ticker_sentiment_score":  "0.117696",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AMAT",
+                                                  "relevance_score":  "0.608504",
+                                                  "ticker_sentiment_score":  "0.114072",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Pacer Advisors Inc. Has $56.08 Million Holdings in Skyworks Solutions, Inc. $SWKS",
+                     "url":  "https://www.marketbeat.com/instant-alerts/filing-pacer-advisors-inc-has-5608-million-holdings-in-skyworks-solutions-inc-swks-2026-08-04/",
+                     "time_published":  "20260804T093855",
+                     "authors":  [
+                                     "MarketBeat"
+                                 ],
+                     "summary":  "Pacer Advisors Inc. increased its stake in Skyworks Solutions (NASDAQ:SWKS) by 10.8% during the first quarter, now owning 1.05 million shares valued at approximately $56.1 million. Despite a cautious \"Hold\" rating from analysts and a consensus price target of $74.22, Skyworks Solutions exceeded its recent quarterly earnings expectations with adjusted EPS of $1.08 and revenue of $934.8 million. The company\u0027s stock, however, opened down 1.6% at $61.29, reflecting a 3.1% year-over-year revenue decline.",
+                     "banner_image":  "https://www.marketbeat.com/logos/skyworks-solutions-inc-logo-1200x675.png?v=20240202075224",
+                     "source":  "MarketBeat",
+                     "category_within_source":  "General",
+                     "source_domain":  "MarketBeat",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.938368"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.849909"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.729967"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.061465,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "SWKS",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.028061",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.637876",
+                                                  "ticker_sentiment_score":  "0.144228",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Kinsale Capital Group Inc. Has $14.07 Million Stake in Apple Inc. $AAPL",
+                     "url":  "https://www.marketbeat.com/instant-alerts/filing-kinsale-capital-group-inc-has-1407-million-stake-in-apple-inc-aapl-2026-08-04/",
+                     "time_published":  "20260804T084043",
+                     "authors":  [
+                                     "MarketBeat"
+                                 ],
+                     "summary":  "Kinsale Capital Group Inc. increased its stake in Apple Inc. by 4.9% in the first quarter, now holding 55,430 shares valued at $14.07 million, making it their 11th-largest holding. Apple recently reported strong quarterly earnings, beating analyst estimates, and declared a dividend of $0.27 per share. Analyst sentiment remains largely positive, with a \"Moderate Buy\" consensus rating and an average price target of $331.60.",
+                     "banner_image":  "https://www.marketbeat.com/logos/apple-inc-logo-1200x675.png",
+                     "source":  "MarketBeat",
+                     "category_within_source":  "General",
+                     "source_domain":  "MarketBeat",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.914081"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.824905"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.720316"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.646521"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.150287,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "KNSL",
+                                                  "relevance_score":  "0.319615",
+                                                  "ticker_sentiment_score":  "0.043627",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.311215",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "California State Teachers Retirement System Grows Position in Skyworks Solutions, Inc. $SWKS",
+                     "url":  "https://www.marketbeat.com/instant-alerts/filing-california-state-teachers-retirement-system-grows-position-in-skyworks-solutions-inc-swks-2026-08-04/",
+                     "time_published":  "20260804T080835",
+                     "authors":  [
+                                     "MarketBeat"
+                                 ],
+                     "summary":  "The California State Teachers Retirement System significantly increased its stake in Skyworks Solutions (NASDAQ:SWKS) by 22% in the first quarter, now holding 171,987 shares valued at $9.21 million. This comes as institutional investors collectively own 85.43% of the semiconductor manufacturer. Despite Skyworks Solutions beating analyst EPS and revenue estimates in its latest earnings report, analysts maintain a cautious \"Hold\" rating with an average price target of $74.22, and the stock opened down 1.6%.",
+                     "banner_image":  "https://www.marketbeat.com/logos/skyworks-solutions-inc-logo-1200x675.png?v=20240202075224",
+                     "source":  "MarketBeat",
+                     "category_within_source":  "General",
+                     "source_domain":  "MarketBeat",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.946165"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.836594"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.719183"
+                                    }
+                                ],
+                     "overall_sentiment_score":  -0.062584,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "SWKS",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "-0.173695",
+                                                  "ticker_sentiment_label":  "Somewhat-Bearish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.723899",
+                                                  "ticker_sentiment_score":  "0.100488",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Apple seeks injunction against OpenAI in trade secrets lawsuit (AAPL:NASDAQ)",
+                     "url":  "https://seekingalpha.com/news/4624305-apple-seeks-injunction-against-openai-in-trade-secrets-lawsuit",
+                     "time_published":  "20260804T080659",
+                     "authors":  [
+                                     "Preeti Singh"
+                                 ],
+                     "summary":  "Apple Inc. is seeking a preliminary injunction against OpenAI and two former employees, accusing them of accessing, acquiring, using, or disclosing confidential information. The lawsuit aims to prevent further alleged trade secret violations. This action by Apple underscores its ongoing efforts to protect its intellectual property.",
+                     "banner_image":  "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1705316992/image_1705316992.jpg?io=getty-c-w630",
+                     "source":  "Seeking Alpha",
+                     "category_within_source":  "General",
+                     "source_domain":  "Seeking Alpha",
+                     "topics":  [
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.918408"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.644045"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.049395,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.347194",
+                                                  "ticker_sentiment_score":  "0.007272",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Apple Briefly Takes Telegram Off App Store Over Abusive Content",
+                     "url":  "https://www.bloomberg.com/news/articles/2026-08-04/apple-briefly-takes-telegram-off-app-store-over-abusive-content",
+                     "time_published":  "20260804T050658",
+                     "authors":  [
+                                     "Newley Purnell",
+                                     "Akriti Sharma",
+                                     "and Mark Gurman"
+                                 ],
+                     "summary":  "Apple briefly removed the Telegram messaging app from its App Store in several countries, including the US, India, Australia, and Singapore, due to the presence of child sexual abuse material, which violates Apple\u0027s content policies. The app was later fully restored after the issue was addressed. This action highlights Apple\u0027s enforcement of its content guidelines on platforms available through its store.",
+                     "banner_image":  null,
+                     "source":  "Bloomberg.com",
+                     "category_within_source":  "General",
+                     "source_domain":  "Bloomberg.com",
+                     "topics":  [
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "1.000000"
+                                    }
+                                ],
+                     "overall_sentiment_score":  -0.130043,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "-0.105553",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Form 4 Kennametal For: 3 August By Investing.com",
+                     "url":  "https://ca.investing.com/news/stock-market-news/form-4-kennametal-for-3-august-93CH-4772376",
+                     "time_published":  "20260803T231348",
+                     "authors":  [
+                                     "Investing.com"
+                                 ],
+                     "summary":  "This article from Investing.com reports on a Form 4 filing for Kennametal on August 3rd, 2026. Form 4 filings are required by the SEC when there\u0027s a change in the beneficial ownership of a company\u0027s securities by officers, directors, or significant shareholders. The article itself is brief, primarily serving as a notification of this regulatory event.",
+                     "banner_image":  "https://i-invdn-com.investing.com/news/moved_LYNXMPEM3S10Z_1200_L.jpg",
+                     "source":  "Investing.com Canada",
+                     "category_within_source":  "General",
+                     "source_domain":  "Investing.com Canada",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.902663"
+                                    },
+                                    {
+                                        "topic":  "manufacturing",
+                                        "relevance_score":  "0.600240"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.037324,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "KMT",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.035343",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AVGO",
+                                                  "relevance_score":  "0.625388",
+                                                  "ticker_sentiment_score":  "0.002009",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.632946",
+                                                  "ticker_sentiment_score":  "0.035789",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "TSLA",
+                                                  "relevance_score":  "0.642795",
+                                                  "ticker_sentiment_score":  "0.028297",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Form 4 CELESTICA INC For: 3 August By Investing.com",
+                     "url":  "https://ca.investing.com/news/stock-market-news/form-4-celestica-inc-for-3-august-93CH-4772363",
+                     "time_published":  "20260803T223948",
+                     "authors":  [
+                                     "Investing.com"
+                                 ],
+                     "summary":  "This article from Investing.com reports the filing of Form 4 for CELESTICA INC on August 3rd. It includes a brief mention of the stock\u0027s performance (-5.97%) and is part of a broader financial news update. The core content is the announcement of the Form 4 filing itself.",
+                     "banner_image":  "https://i-invdn-com.investing.com/news/moved_LYNXMPEM4416N_1200_L.jpg",
+                     "source":  "Investing.com Canada",
+                     "category_within_source":  "General",
+                     "source_domain":  "Investing.com Canada",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "1.000000"
+                                    },
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.715871"
+                                    }
+                                ],
+                     "overall_sentiment_score":  -0.072715,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "CLS",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "-0.384942",
+                                                  "ticker_sentiment_label":  "Bearish"
+                                              },
+                                              {
+                                                  "ticker":  "AVGO",
+                                                  "relevance_score":  "0.637153",
+                                                  "ticker_sentiment_score":  "0.282852",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.648740",
+                                                  "ticker_sentiment_score":  "-0.401257",
+                                                  "ticker_sentiment_label":  "Bearish"
+                                              },
+                                              {
+                                                  "ticker":  "TSLA",
+                                                  "relevance_score":  "0.620177",
+                                                  "ticker_sentiment_score":  "0.288075",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Is Wells Fargo (WFC) Undervalued After Its Earnings Beat And 11% Dividend Increase?",
+                     "url":  "https://simplywall.st/stocks/us/banks/nyse-wfc/wells-fargo/news/is-wells-fargo-wfc-undervalued-after-its-earnings-beat-and-1",
+                     "time_published":  "20260803T223935",
+                     "authors":  [
+                                     "Simply Wall St"
+                                 ],
+                     "summary":  "Wells Fargo (WFC) recently reported better-than-expected second-quarter earnings and increased its quarterly dividend by 11% to $0.50 per share. The stock is currently trading about 16% below the average analyst price target and is considered undervalued with a narrative fair value of $98.34, compared to its last closing price of $86.45. This positive outlook is largely attributed to the removal of asset caps and the resolution of regulatory orders, which are expected to drive future growth in its balance sheet, revenues, and earnings.",
+                     "banner_image":  null,
+                     "source":  "Simply Wall Street",
+                     "category_within_source":  "General",
+                     "source_domain":  "Simply Wall Street",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.938607"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.826563"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.839459"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.16315,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "WFC",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.495976",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "JPM",
+                                                  "relevance_score":  "0.625050",
+                                                  "ticker_sentiment_score":  "0.114657",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "BAC",
+                                                  "relevance_score":  "0.649000",
+                                                  "ticker_sentiment_score":  "0.136636",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "CL",
+                                                  "relevance_score":  "0.582004",
+                                                  "ticker_sentiment_score":  "0.103683",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.583545",
+                                                  "ticker_sentiment_score":  "-0.158764",
+                                                  "ticker_sentiment_label":  "Somewhat-Bearish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "RenaissanceRe Holdings (RNR) Could Be 6% Undervalued On Earnings And Buybacks",
+                     "url":  "https://simplywall.st/stocks/us/insurance/nyse-rnr/renaissancere-holdings/news/renaissancere-holdings-rnr-could-be-6-undervalued-on-earning",
+                     "time_published":  "20260803T223924",
+                     "authors":  [
+                                     "Simply Wall St"
+                                 ],
+                     "summary":  "RenaissanceRe Holdings (RNR) is currently trading at US$319.98, which is slightly below the consensus fair value of $339, suggesting it might be 6% undervalued based on analyst expectations. This valuation is influenced by recent Q2 earnings, a declared quarterly dividend, and a share repurchase program. While the stock has seen positive momentum over the past year, its recent revenue and net income were softer, and its future valuation depends on assumptions regarding revenue, margins, and potential risks like catastrophe losses.",
+                     "banner_image":  null,
+                     "source":  "Simply Wall Street",
+                     "category_within_source":  "General",
+                     "source_domain":  "Simply Wall Street",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.907638"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.849369"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.705324"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.047149,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "RNR-P-F",
+                                                  "relevance_score":  "0.334919",
+                                                  "ticker_sentiment_score":  "0.001006",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "CL",
+                                                  "relevance_score":  "0.681047",
+                                                  "ticker_sentiment_score":  "0.002783",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.637311",
+                                                  "ticker_sentiment_score":  "0.049294",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "MSFT",
+                                                  "relevance_score":  "0.555754",
+                                                  "ticker_sentiment_score":  "0.012187",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Goldman Sachs Group Inc Q2 2026: Revenue $20.34B, EPS $20.98â 10-Q Summary",
+                     "url":  "https://www.tradingview.com/news/tradingview:df82bbc79d4fb:0-goldman-sachs-group-inc-q2-2026-revenue-20-34b-eps-20-98-10-q-summary/",
+                     "time_published":  "20260803T213804",
+                     "authors":  [
+
+                                 ],
+                     "summary":  "Goldman Sachs Group Inc. reported strong second-quarter 2026 results, with revenue reaching $20.34 billion and diluted EPS at $20.98. This significant growth was primarily driven by robust performance in markets and increased investment banking fees compared to the previous year. The company also returned $5.36 billion to shareholders and maintained strong liquidity and capital positions.",
+                     "banner_image":  null,
+                     "source":  "TradingView",
+                     "category_within_source":  "General",
+                     "source_domain":  "TradingView",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "1.000000"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.819755"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.708989"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.201816,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "GS",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.435998",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.635725",
+                                                  "ticker_sentiment_score":  "0.000309",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Spotify Earnings Prediction Market Preview: What Will Its New Co-CEOs Say?",
+                     "url":  "https://www.benzinga.com/markets/prediction-markets/26/08/60893295/spotify-earnings-prediction-market-preview-what-will-its-new-co-ceos-say",
+                     "time_published":  "20260803T210924",
+                     "authors":  [
+                                     "Daragh Thomas"
+                                 ],
+                     "summary":  "Spotify is set to report its second-quarter earnings, with analysts expecting $3.29 per share on $5.6 billion in revenue. Following recent price increases, investors are keen to see if subscriber retention and advertising revenue acceleration will offset potential churn. Prediction markets are betting on key terms like \"retention\" and \"monetization\" to be discussed by the new co-CEOs, while downplaying mentions of \"Claude\" or \"Netflix\".",
+                     "banner_image":  "https://cdn.benzinga.com/cdn-cgi/image/width=1300,format=auto,quality=85/files/images/story/2025/07/24/article-header-background-image.png",
+                     "source":  "Benzinga",
+                     "category_within_source":  "General",
+                     "source_domain":  "Benzinga",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.906089"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.842313"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.721901"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.168827,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "SPOT",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.140168",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "NFLX",
+                                                  "relevance_score":  "0.625337",
+                                                  "ticker_sentiment_score":  "0.148715",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.640594",
+                                                  "ticker_sentiment_score":  "0.208511",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Form 144 Honeywell International Inc. For: 3 August By Investing.com",
+                     "url":  "https://ca.investing.com/news/stock-market-news/form-144-honeywell-international-inc-for-3-august-93CH-4772238",
+                     "time_published":  "20260803T210246",
+                     "authors":  [
+                                     "Investing.com"
+                                 ],
+                     "summary":  "This article announces the filing of Form 144 by Honeywell International Inc. on August 3rd. Form 144 indicates an intent to sell restricted securities. The article provides no further details beyond the company and date.",
+                     "banner_image":  "https://i-invdn-com.investing.com/news/LYNXNPEB6R073_L.jpg",
+                     "source":  "Investing.com Canada",
+                     "category_within_source":  "General",
+                     "source_domain":  "Investing.com Canada",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.939530"
+                                    },
+                                    {
+                                        "topic":  "manufacturing",
+                                        "relevance_score":  "0.607319"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.004237,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "HON",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.028802",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AVGO",
+                                                  "relevance_score":  "0.631490",
+                                                  "ticker_sentiment_score":  "0.016472",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AMD",
+                                                  "relevance_score":  "0.627352",
+                                                  "ticker_sentiment_score":  "0.026114",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "TSLA",
+                                                  "relevance_score":  "0.603420",
+                                                  "ticker_sentiment_score":  "0.015898",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.615386",
+                                                  "ticker_sentiment_score":  "0.006056",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Form 144 Maze Therapeutics For: 3 August By Investing.com",
+                     "url":  "https://ca.investing.com/news/stock-market-news/form-144-maze-therapeutics-for-3-august-93CH-4772089",
+                     "time_published":  "20260803T204304",
+                     "authors":  [
+                                     "Investing.com"
+                                 ],
+                     "summary":  "The article reports on a Form 144 filing by Maze Therapeutics for August 3rd. It is a brief news item from Investing.com, likely indicating an insider transaction or an intent to sell restricted stock by the company. The content also includes market data, other news headlines, and various financial tool advertisements.",
+                     "banner_image":  "https://i-invdn-com.investing.com/news/LYNXNPEB66095_L.jpg",
+                     "source":  "Investing.com Canada",
+                     "category_within_source":  "General",
+                     "source_domain":  "Investing.com Canada",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.917752"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.051127,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "MAZE",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.011645",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AVGO",
+                                                  "relevance_score":  "0.630618",
+                                                  "ticker_sentiment_score":  "0.080500",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.644442",
+                                                  "ticker_sentiment_score":  "0.076791",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "TSLA",
+                                                  "relevance_score":  "0.634964",
+                                                  "ticker_sentiment_score":  "0.084741",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Buffett-Inspired ETF Owns Berkshire, Apple, Amex and Generates 15% Yield",
+                     "url":  "https://www.barrons.com/articles/buffett-etf-berkshire-apple-amex-dd8507e0",
+                     "time_published":  "20260803T202432",
+                     "authors":  [
+                                     "Andrew Bary"
+                                 ],
+                     "summary":  "The VistaShares Target 15 Berkshire Select Income ETF, inspired by Warren Buffett\u0027s investment philosophy, has achieved its goal of generating a 15% annual distribution rate since its launch in March 2025. This ETF allocates 10% of its holdings to Berkshire Hathaway shares and invests in 20 other stocks based on their weighting within Berkshire\u0027s portfolio, including companies like Apple and American Express. The fund aims to provide income to investors by tracking the equity investments of Berkshire Hathaway.",
+                     "banner_image":  "https://images.barrons.com/im-44026528?width=700\u0026height=466",
+                     "source":  "Barron\u0027s",
+                     "category_within_source":  "General",
+                     "source_domain":  "Barron\u0027s",
+                     "topics":  [
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "1.000000"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.914212"
+                                    },
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.738000"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.639698"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.403509,
+                     "overall_sentiment_label":  "Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "AXP",
+                                                  "relevance_score":  "0.743081",
+                                                  "ticker_sentiment_score":  "0.409674",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.831740",
+                                                  "ticker_sentiment_score":  "0.422845",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Hewlett Packard Enterprise Co Stock (HPE) Closed Up by 5.25% on Aug 3: Facts Behind the Movement",
+                     "url":  "https://www.tradingkey.com/news/market-movers/262071563-market-movers-hpe-20260803",
+                     "time_published":  "20260803T201536",
+                     "authors":  [
+                                     "TradingKey"
+                                 ],
+                     "summary":  "Hewlett Packard Enterprise (HPE) stock increased by 5.25% on August 3rd, driven by high demand for AI-optimized servers and liquid-cooling technology, along with margin expansion from the integration of Juniper Networks. Stable interest rates and resilient IT budgets are also supporting its GreenLake business model. Despite this positive movement, the company faces risks such as anti-trust regulatory scrutiny for the Juniper acquisition, AI margin compression, persistent weakness in its networking segment, and dilution risks from its capital structure.",
+                     "banner_image":  null,
+                     "source":  "TradingKey",
+                     "category_within_source":  "General",
+                     "source_domain":  "TradingKey",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.938108"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.906298"
+                                    },
+                                    {
+                                        "topic":  "economy_macro",
+                                        "relevance_score":  "0.630806"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.835992"
+                                    },
+                                    {
+                                        "topic":  "mergers_and_acquisitions",
+                                        "relevance_score":  "0.711091"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.204086,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "HPE",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.488210",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "MU",
+                                                  "relevance_score":  "0.640972",
+                                                  "ticker_sentiment_score":  "0.121286",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "NVDA",
+                                                  "relevance_score":  "0.646742",
+                                                  "ticker_sentiment_score":  "0.256124",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.598424",
+                                                  "ticker_sentiment_score":  "-0.135711",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "PLTR",
+                                                  "relevance_score":  "0.590595",
+                                                  "ticker_sentiment_score":  "0.241772",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Form 144 Fold Holdings For: 3 August By Investing.com",
+                     "url":  "https://ca.investing.com/news/stock-market-news/form-144-fold-holdings-for-3-august-93CH-4772096",
+                     "time_published":  "20260803T201244",
+                     "authors":  [
+                                     "Investing.com"
+                                 ],
+                     "summary":  "This article announces the Form 144 Fold Holdings for August 3rd, indicating insider selling activity. It appears to be a placeholder or very brief notification from Investing.com, providing no specific details about the holdings but pointing to the date of the filing. The article is extremely short and serves mainly as a title and date announcement.",
+                     "banner_image":  "https://i-invdn-com.investing.com/news/LYNXNPEB5S0BB_L.jpg",
+                     "source":  "Investing.com Canada",
+                     "category_within_source":  "General",
+                     "source_domain":  "Investing.com Canada",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.938899"
+                                    }
+                                ],
+                     "overall_sentiment_score":  -0.116132,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "FLD",
+                                                  "relevance_score":  "0.320937",
+                                                  "ticker_sentiment_score":  "0.034552",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.720891",
+                                                  "ticker_sentiment_score":  "-0.211490",
+                                                  "ticker_sentiment_label":  "Somewhat-Bearish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Suppliers Competing on Price Are Losing the Real Game. Appleâs Ford Deal Shows What Wins",
+                     "url":  "https://www.inc.com/soren-kaplan/suppliers-competing-on-price-are-losing-the-real-game-apples-ford-deal-shows-what-wins/91382264",
+                     "time_published":  "20260803T184414",
+                     "authors":  [
+                                     "SOREN KAPLAN"
+                                 ],
+                     "summary":  "The article discusses how suppliers focused solely on price are missing the bigger picture of creating value through customer experience. It highlights the partnership between Apple and Ford, where Apple\u0027s MapKit for Automotive will enhance the driving experience in Ford\u0027s new electric vehicles, demonstrating how the strongest suppliers shape customer memory. The author argues that B2B companies should focus on whose experience their product shapes, two steps beyond their direct client.",
+                     "banner_image":  "https://img-cdn.inc.com/image/upload/f_webp,c_fit,w_1920,q_auto/vip/2026/07/apple-ford-partnership-inc.jpg",
+                     "source":  "Inc.com",
+                     "category_within_source":  "General",
+                     "source_domain":  "Inc.com",
+                     "topics":  [
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.823373"
+                                    },
+                                    {
+                                        "topic":  "economy_macro",
+                                        "relevance_score":  "0.601639"
+                                    },
+                                    {
+                                        "topic":  "manufacturing",
+                                        "relevance_score":  "0.629489"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.270122,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "F",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.324065",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.946004",
+                                                  "ticker_sentiment_score":  "0.330255",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "GLW",
+                                                  "relevance_score":  "0.608977",
+                                                  "ticker_sentiment_score":  "0.240261",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "QCOM",
+                                                  "relevance_score":  "0.600480",
+                                                  "ticker_sentiment_score":  "0.228339",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Apple Files New Challenge Against UK Effort to Access User Files",
+                     "url":  "https://www.bloomberg.com/news/articles/2026-08-03/apple-files-new-challenge-against-uk-effort-to-access-user-files",
+                     "time_published":  "20260803T181300",
+                     "authors":  [
+                                     "Ryan Gallagher"
+                                 ],
+                     "summary":  "Apple Inc. has filed a new legal challenge against the UK government\u0027s efforts to access encrypted user data, including that of iPhone users, stored in the cloud. A UK court, which oversees secret surveillance activities, confirmed Apple\u0027s latest filing, with a hearing scheduled for September. The details of Apple\u0027s specific arguments in the filing are not yet public due to the confidentiality of the proceedings.",
+                     "banner_image":  null,
+                     "source":  "Bloomberg.com",
+                     "category_within_source":  "General",
+                     "source_domain":  "Bloomberg.com",
+                     "topics":  [
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.930636"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.11276,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.110359",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Form 144 STANDEX INTERNATIONAL CORP/DE/ For: 3 August By Investing.com",
+                     "url":  "https://ca.investing.com/news/stock-market-news/form-144-standex-international-corpde-for-3-august-93CH-4771920",
+                     "time_published":  "20260803T180933",
+                     "authors":  [
+                                     "Investing.com"
+                                 ],
+                     "summary":  "This article announces the filing of Form 144 for STANDEX INTERNATIONAL CORP/DE/ on August 3rd. Form 144 indicates an intent to sell restricted securities, providing transparency regarding potential insider transactions. The brief piece primarily serves as a notification from Investing.com.",
+                     "banner_image":  "https://i-invdn-com.investing.com/news/moved_LYNXMPEM40318_1200_L.jpg",
+                     "source":  "Investing.com Canada",
+                     "category_within_source":  "General",
+                     "source_domain":  "Investing.com Canada",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.929122"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.746076"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.037172,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "SXI",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.019489",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AVGO",
+                                                  "relevance_score":  "0.614457",
+                                                  "ticker_sentiment_score":  "0.047503",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.643007",
+                                                  "ticker_sentiment_score":  "-0.133976",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "TSLA",
+                                                  "relevance_score":  "0.641908",
+                                                  "ticker_sentiment_score":  "0.122472",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Apple launches legal challenge against UK government demand to access data",
+                     "url":  "https://www.theguardian.com/technology/2026/aug/03/apple-legal-challenge-uk-government-data-access",
+                     "time_published":  "20260803T173500",
+                     "authors":  [
+                                     "Rachel Hall"
+                                 ],
+                     "summary":  "Apple has initiated a new legal challenge against the UK government\u0027s demand for \"back door\" access to encrypted iCloud data belonging to British users. This action comes after the Home Office issued a second request through a \"technical capability notice\" (TCN), which Apple is now contesting at the Investigatory Powers Tribunal. The tech giant\u0027s complaint seeks to challenge the UK\u0027s powers under the Investigatory Powers Act, arguing that such access compromises user privacy and security.",
+                     "banner_image":  "https://i.guim.co.uk/img/media/22ff6557a45423ed003daa2bf5f7ab08c172b703/388_0_3877_3101/master/3877.jpg?width=465\u0026dpr=1\u0026s=none\u0026crop=none",
+                     "source":  "The Guardian",
+                     "category_within_source":  "General",
+                     "source_domain":  "The Guardian",
+                     "topics":  [
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.902950"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.740782"
+                                    }
+                                ],
+                     "overall_sentiment_score":  -0.206196,
+                     "overall_sentiment_label":  "Somewhat-Bearish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "-0.220459",
+                                                  "ticker_sentiment_label":  "Somewhat-Bearish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Form 144 Oklo Inc. For: 3 August By Investing.com",
+                     "url":  "https://ca.investing.com/news/stock-market-news/form-144-oklo-inc-for-3-august-93CH-4771908",
+                     "time_published":  "20260803T171157",
+                     "authors":  [
+                                     "Investing.com"
+                                 ],
+                     "summary":  "This article announces the filing of Form 144 for Oklo Inc. on August 3. Form 144 is a document filed with the SEC by an affiliate of a company who intends to sell restricted or control securities. The brief notice indicates that Oklo Inc. (OKLO) saw a 6.16% increase.",
+                     "banner_image":  "https://i-invdn-com.investing.com/news/moved_LYNXMPEM3T1AG_1200_L.jpg",
+                     "source":  "Investing.com Canada",
+                     "category_within_source":  "General",
+                     "source_domain":  "Investing.com Canada",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.947120"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.134465,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "OKLO",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.182897",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AVGO",
+                                                  "relevance_score":  "0.647645",
+                                                  "ticker_sentiment_score":  "0.124343",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.620443",
+                                                  "ticker_sentiment_score":  "-0.210095",
+                                                  "ticker_sentiment_label":  "Somewhat-Bearish"
+                                              },
+                                              {
+                                                  "ticker":  "TSLA",
+                                                  "relevance_score":  "0.609264",
+                                                  "ticker_sentiment_score":  "0.314182",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Apple Plans iPhone-to-Windows Copy and Paste in EU After Microsoft Request",
+                     "url":  "https://www.macrumors.com/2026/08/03/apple-iphone-windows-copy-paste/",
+                     "time_published":  "20260803T161900",
+                     "authors":  [
+                                     "Juli Clover"
+                                 ],
+                     "summary":  "Apple is developing a new feature that will enable cross-device copy and paste functionality between iPhones and Windows PCs, a capability requested by Microsoft through Apple\u0027s EU interoperability system. This feature, expected to be fully implemented by fall 2027, will require a one-time user consent for paired devices and will likely first launch in the European Union, potentially expanding worldwide later. It addresses current limitations where clipboard synchronization from an iPhone to a PC is restricted due to app foreground requirements.",
+                     "banner_image":  "https://images.macrumors.com/t/O-DH_GB8r_MOuTVT8LZEr9DQ4JY=/400x0/article-new/2026/08/apple-universal-clipboard-copy-paste.jpg?lossy",
+                     "source":  "MacRumors",
+                     "category_within_source":  "General",
+                     "source_domain":  "MacRumors",
+                     "topics":  [
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.938423"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.20196,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "MSFT",
+                                                  "relevance_score":  "0.942336",
+                                                  "ticker_sentiment_score":  "0.347583",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.948545",
+                                                  "ticker_sentiment_score":  "0.278241",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "META",
+                                                  "relevance_score":  "0.603861",
+                                                  "ticker_sentiment_score":  "0.118094",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "GOOGL",
+                                                  "relevance_score":  "0.553262",
+                                                  "ticker_sentiment_score":  "0.137203",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Sapient Capital LLC Decreases Stock Position in The Walt Disney Company $DIS",
+                     "url":  "https://www.marketbeat.com/instant-alerts/filing-sapient-capital-llc-decreases-stock-position-in-the-walt-disney-company-dis-2026-08-03/",
+                     "time_published":  "20260803T150733",
+                     "authors":  [
+                                     "MarketBeat"
+                                 ],
+                     "summary":  "Sapient Capital LLC reduced its stake in The Walt Disney Company by 21.4% in the first quarter, selling 83,769 shares and retaining 307,730 shares worth $29.7 million. While institutional ownership of Disney stands at 65.71%, the company faces mixed sentiment with potential positive catalysts like streaming profitability and asset sales, alongside negative factors such as analyst caution and job cuts at Pixar. Disney\u0027s stock recently traded near $96.29, below its 52-week high of $119.91.",
+                     "banner_image":  "https://www.marketbeat.com/logos/the-walt-disney-company-logo-1200x675.png?v=20201229105326",
+                     "source":  "MarketBeat",
+                     "category_within_source":  "General",
+                     "source_domain":  "MarketBeat",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.900826"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.818006"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.701966"
+                                    },
+                                    {
+                                        "topic":  "economy_macro",
+                                        "relevance_score":  "0.603292"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.051739,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "DIS",
+                                                  "relevance_score":  "0.959394",
+                                                  "ticker_sentiment_score":  "0.095658",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "SBUX",
+                                                  "relevance_score":  "0.647510",
+                                                  "ticker_sentiment_score":  "0.070435",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.559640",
+                                                  "ticker_sentiment_score":  "-0.067991",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "India Eyes More Tax Breaks for Electronics in Win For Apple",
+                     "url":  "https://www.bloomberg.com/news/articles/2026-08-03/india-eyes-more-tax-breaks-for-electronics-in-win-for-apple",
+                     "time_published":  "20260803T150708",
+                     "authors":  [
+                                     "Abhijit Roy Chowdhury and Sankalp Phartiyal"
+                                 ],
+                     "summary":  "India plans to extend tax breaks for foreign firms supplying machinery to local electronics manufacturers, including companies like Apple Inc. and Google. This move, which involves amendments to the Income Tax Act, will prolong tax exemptions for contract manufacturers until 2041, benefiting the production of mobile phones, laptops, tablets, and servers. The initiative is set to bolster domestic electronics manufacturing efforts.",
+                     "banner_image":  null,
+                     "source":  "Bloomberg",
+                     "category_within_source":  "General",
+                     "source_domain":  "Bloomberg",
+                     "topics":  [
+                                    {
+                                        "topic":  "economy_fiscal",
+                                        "relevance_score":  "0.939424"
+                                    },
+                                    {
+                                        "topic":  "manufacturing",
+                                        "relevance_score":  "0.737133"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.720582"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.361041,
+                     "overall_sentiment_label":  "Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.965760",
+                                                  "ticker_sentiment_score":  "0.469772",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "GOOGL",
+                                                  "relevance_score":  "0.729745",
+                                                  "ticker_sentiment_score":  "0.333198",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "GOOG",
+                                                  "relevance_score":  "0.748453",
+                                                  "ticker_sentiment_score":  "0.314383",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Micron\u0027s 85% Gross Margin Tops Meta, Microsoft, and Google - Here\u0027s Why It Could Climb Even Higher",
+                     "url":  "https://247wallst.com/investing/2026/08/03/microns-85-gross-margin-tops-meta-microsoft-and-google-heres-why-it-could-climb-even-higher/",
+                     "time_published":  "20260803T143935",
+                     "authors":  [
+                                     "Rich Duprey"
+                                 ],
+                     "summary":  "Micron Technology has achieved an 85% gross margin, surpassing software giants like Meta, Microsoft, and Alphabet, largely due to the high demand and limited supply of advanced memory chips essential for AI infrastructure. This remarkable shift in profitability for a hardware manufacturer, which previously faced negative margins, is driven by AI-related spending and the bottleneck in memory production controlled by only three companies. While memory is historically cyclical, current industry forecasts suggest that tight HBM supply and strong pricing power for Micron could continue well into 2027 or even 2028.",
+                     "banner_image":  "https://247wallst.com/wp-content/uploads/2018/09/chips_with_micron_logo.jpg",
+                     "source":  "24/7 Wall St.",
+                     "category_within_source":  "General",
+                     "source_domain":  "24/7 Wall St.",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.922590"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.827505"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.707397"
+                                    },
+                                    {
+                                        "topic":  "economy_macro",
+                                        "relevance_score":  "0.647764"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.21123,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "MU",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.479157",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "META",
+                                                  "relevance_score":  "0.735380",
+                                                  "ticker_sentiment_score":  "0.301271",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "MSFT",
+                                                  "relevance_score":  "0.706386",
+                                                  "ticker_sentiment_score":  "0.328405",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "GOOG",
+                                                  "relevance_score":  "0.712046",
+                                                  "ticker_sentiment_score":  "0.336895",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.630562",
+                                                  "ticker_sentiment_score":  "-0.342290",
+                                                  "ticker_sentiment_label":  "Somewhat-Bearish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Garmin: Beware Consumer Hardware As Sales Slow (NYSE:GRMN)",
+                     "url":  "https://seekingalpha.com/article/4929490-garmin-beware-consumer-hardware-as-sales-slow",
+                     "time_published":  "20260803T143835",
+                     "authors":  [
+                                     "Gary Alexander"
+                                 ],
+                     "summary":  "Garmin\u0027s stock surged post-Q2 despite a slowdown in sales across most segments, leading to a historically rich valuation. The company projects 11% revenue growth and $10.00 pro forma EPS, but faces decelerating growth and potential longer replacement cycles for its hardware. The author reiterates a \u0027Sell\u0027 rating, citing Garmin\u0027s high PEG and P/E ratios which are disconnected from its modest growth outlook.",
+                     "banner_image":  "https://static.seekingalpha.com/cdn/s3/uploads/getty_images/1193474288/image_1193474288.jpg?io=getty-c-w630",
+                     "source":  "Seeking Alpha",
+                     "category_within_source":  "General",
+                     "source_domain":  "Seeking Alpha",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.919131"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.814665"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.736081"
+                                    }
+                                ],
+                     "overall_sentiment_score":  -0.460809,
+                     "overall_sentiment_label":  "Bearish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "GRMN",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "-0.837506",
+                                                  "ticker_sentiment_label":  "Bearish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.638030",
+                                                  "ticker_sentiment_score":  "-0.141417",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Rlj Lodging Trust stock hits 52-week high at $12.57 By Investing.com",
+                     "url":  "https://ca.investing.com/news/stock-market-news/rlj-lodging-trust-stock-hits-52week-high-at-1257-93CH-4771511",
+                     "time_published":  "20260803T141101",
+                     "authors":  [
+                                     "Investing.com"
+                                 ],
+                     "summary":  "RLJ Lodging Trust (RLJ) stock reached a new 52-week high of $12.57, reflecting an 82.55% year-over-year return and strong investor confidence. The company\u0027s market capitalization is $1.89 billion, and it offers a 4.9% dividend yield, having increased its dividend for four consecutive years. This surge follows better-than-expected Q1 2026 financial results, with analysts like Truist Securities and Raymond James adjusting their ratings and price targets for the stock.",
+                     "banner_image":  "https://i-invdn-com.investing.com/news/LYNXMPEM3F1FY_1200_L.jpg",
+                     "source":  "Investing.com Canada",
+                     "category_within_source":  "General",
+                     "source_domain":  "Investing.com Canada",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.938470"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.810177"
+                                    },
+                                    {
+                                        "topic":  "real_estate",
+                                        "relevance_score":  "0.705155"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.620953"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.184043,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "RLJ",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.485819",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AVGO",
+                                                  "relevance_score":  "0.565256",
+                                                  "ticker_sentiment_score":  "0.182051",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.595636",
+                                                  "ticker_sentiment_score":  "-0.171522",
+                                                  "ticker_sentiment_label":  "Somewhat-Bearish"
+                                              },
+                                              {
+                                                  "ticker":  "TSLA",
+                                                  "relevance_score":  "0.577466",
+                                                  "ticker_sentiment_score":  "0.293370",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Should iShares Russell 1000 ETF (IWB) Be on Your Investing Radar?",
+                     "url":  "https://finance.yahoo.com/markets/stocks/articles/ishares-russell-1000-etf-iwb-102002486.html",
+                     "time_published":  "20260803T140951",
+                     "authors":  [
+                                     "Zacks Equity Research"
+                                 ],
+                     "summary":  "The iShares Russell 1000 ETF (IWB) offers broad exposure to the Large Cap Blend segment of the US equity market, with over $48.30 billion in assets and an expense ratio of 0.15%. Its portfolio is heavily allocated to Information Technology, with top holdings including Nvidia, Apple, and Microsoft. IWB has shown strong performance, up 9.81% year-to-date and 18.65% in the last year, and carries a Zacks ETF Rank of 3 (Hold).",
+                     "banner_image":  "https://s.yimg.com/lo/mysterio/api/BF9384C4501A57DD07B2E6CD5AEB6EB8EE905A611DB5B176467F356C19CA4F84/subgraphmysterio/resizefit_w960_h640;quality_80;format_webp/https:%2F%2Fmedia.zenfs.com%2Fen%2Fzacks.com%2Fa7cdcede0bb5a646be035f4a7e678781",
+                     "source":  "Yahoo Finance",
+                     "category_within_source":  "General",
+                     "source_domain":  "Yahoo Finance",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.914018"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.743402"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.164129,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "IWB",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.251736",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "BLK",
+                                                  "relevance_score":  "0.633014",
+                                                  "ticker_sentiment_score":  "0.113421",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "NVDA",
+                                                  "relevance_score":  "0.644832",
+                                                  "ticker_sentiment_score":  "0.154989",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.649736",
+                                                  "ticker_sentiment_score":  "0.167597",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "MSFT",
+                                                  "relevance_score":  "0.642879",
+                                                  "ticker_sentiment_score":  "0.150819",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Amazon Joins Elite List of Stocks to Top $3 Trillion in Value",
+                     "url":  "https://www.bloomberg.com/news/articles/2026-08-03/amazon-joins-elite-list-of-stocks-to-top-3-trillion-in-value",
+                     "time_published":  "20260803T133911",
+                     "authors":  [
+                                     "Jeran Wittenstein"
+                                 ],
+                     "summary":  "Amazon.com Inc. has surpassed a $3 trillion market value for the first time, making it the fifth company to achieve this milestone. The company\u0027s shares climbed after strong second-quarter earnings, driven by accelerating cloud-computing revenue. Amazon now joins Nvidia, Alphabet, Microsoft, and Apple in this elite group.",
+                     "banner_image":  "https://assets.bwbx.io/images/users/iqjWHBFdfxIU/itZkXfYzhGAg/v0/-1x-1.webp",
+                     "source":  "Bloomberg",
+                     "category_within_source":  "General",
+                     "source_domain":  "Bloomberg",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.911525"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.410373,
+                     "overall_sentiment_label":  "Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "AMZN",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.488865",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "NVDA",
+                                                  "relevance_score":  "0.649737",
+                                                  "ticker_sentiment_score":  "0.394861",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "GOOGL",
+                                                  "relevance_score":  "0.633460",
+                                                  "ticker_sentiment_score":  "0.386248",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "MSFT",
+                                                  "relevance_score":  "0.644031",
+                                                  "ticker_sentiment_score":  "0.411429",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.606941",
+                                                  "ticker_sentiment_score":  "0.390122",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Which Is the Better International ETF: Vanguard\u0027s Low-Cost VEA or State Street\u0027s Climate-Focused NZAC?",
+                     "url":  "https://www.theglobeandmail.com/investing/markets/stocks/AAPL/pressreleases/3612118/which-is-the-better-international-etf-vanguards-low-cost-vea-or-state-streets-climate-focused-nzac/",
+                     "time_published":  "20260803T121327",
+                     "authors":  [
+                                     "Motley Fool"
+                                 ],
+                     "summary":  "This article compares two international ETFs: Vanguard\u0027s FTSE Developed Markets ETF (VEA) and State Street\u0027s SPDR MSCI ACWI Climate Paris Aligned ETF (NZAC). VEA offers broad diversification and a lower expense ratio, making it ideal for cost-conscious investors seeking international exposure outside the U.S. In contrast, NZAC targets companies aligned with the Paris Agreement, focusing on climate-risk standards, but comes with a higher expense ratio and a significant concentration in U.S. megacap technology stocks, which may not provide the desired international diversification.",
+                     "banner_image":  "https://barchart-news-media-prod.aws.barchart.com/FC/9bd71db21571362b6a7b1573e72e3902/pixel%3Fslug%3Dmotleyfoolgm-2026-8-3-which-is-the-better-international-etf-vanguards-low-cost-vea-or-state-streets-climate-focused-nzac",
+                     "source":  "The Globe and Mail",
+                     "category_within_source":  "General",
+                     "source_domain":  "The Globe and Mail",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.916660"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.834090"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.316937,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "VEA",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.452574",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "NVDA",
+                                                  "relevance_score":  "0.683982",
+                                                  "ticker_sentiment_score":  "0.288139",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.677930",
+                                                  "ticker_sentiment_score":  "0.295783",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "MSFT",
+                                                  "relevance_score":  "0.717326",
+                                                  "ticker_sentiment_score":  "0.288785",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Pacer Advisors Inc. Trims Stock Position in Comcast Corporation $CMCSA",
+                     "url":  "https://www.marketbeat.com/instant-alerts/filing-pacer-advisors-inc-trims-stock-position-in-comcast-corporation-cmcsa-2026-08-03/",
+                     "time_published":  "20260803T121221",
+                     "authors":  [
+                                     "MarketBeat"
+                                 ],
+                     "summary":  "Pacer Advisors Inc. reduced its stake in Comcast Corporation by 10.2% during the first quarter, selling over 1.6 million shares but still retaining a significant holding valued at approximately $404 million. Despite this reduction, institutional investors collectively own 84.32% of Comcast. The company recently reported better-than-expected quarterly earnings and declared a quarterly dividend of $0.33 per share, while analysts maintain a consensus \"Hold\" rating with an average price target of $32.96.",
+                     "banner_image":  "https://www.marketbeat.com/logos/comcast-co-logo-1200x675.jpg?v=20231213132334",
+                     "source":  "MarketBeat",
+                     "category_within_source":  "General",
+                     "source_domain":  "MarketBeat",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.937179"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.836021"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.718406"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.627720"
+                                    },
+                                    {
+                                        "topic":  "economy_macro",
+                                        "relevance_score":  "0.610876"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.08296,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "CMCSV",
+                                                  "relevance_score":  "0.331558",
+                                                  "ticker_sentiment_score":  "0.014032",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "CMCSA",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.084241",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "MSFT",
+                                                  "relevance_score":  "0.586753",
+                                                  "ticker_sentiment_score":  "0.086925",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.574462",
+                                                  "ticker_sentiment_score":  "0.074435",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AMZN",
+                                                  "relevance_score":  "0.562202",
+                                                  "ticker_sentiment_score":  "0.070462",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Why We Downgraded Vanguard Dividend Growth Fund",
+                     "url":  "https://www.morningstar.com/funds/why-we-downgraded-vanguard-dividend-growth",
+                     "time_published":  "20260803T114335",
+                     "authors":  [
+                                     "River Meng",
+                                     "CFA"
+                                 ],
+                     "summary":  "Morningstar downgraded the Vanguard Dividend Growth Fund (VDIGX) to Bronze from Gold due to management changes, including the departure of Peter Fisher and the appointment of new comanagers. These changes have broadened the fund\u0027s mandate and altered its investment process, introducing uncertainty. The article also highlights rating changes for other funds, including AB Large Cap Growth, JPMorgan Mid Cap Growth, and T. Rowe Price US Equity Research Fund.",
+                     "banner_image":  "https://morningstar-morningstar-prod.web.arc-cdn.net/resizer/dCztMjKV6e3oOR27NhxcPMob8FU=/2000x2000/author-service-images-prod-us-east-1.publishing.aws.arc.pub/morningstar/X6OYHB7P3FBU7BST4QVNSGLE5Q.jpg",
+                     "source":  "Morningstar",
+                     "category_within_source":  "General",
+                     "source_domain":  "Morningstar",
+                     "topics":  [
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "1.000000"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.808526"
+                                    }
+                                ],
+                     "overall_sentiment_score":  -0.091855,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "MORN",
+                                                  "relevance_score":  "0.312353",
+                                                  "ticker_sentiment_score":  "0.032965",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "TSLA",
+                                                  "relevance_score":  "0.602151",
+                                                  "ticker_sentiment_score":  "-0.144501",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.647074",
+                                                  "ticker_sentiment_score":  "-0.146516",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Should iShares Russell 1000 Value ETF (IWD) Be on Your Investing Radar?",
+                     "url":  "https://finance.yahoo.com/markets/stocks/articles/ishares-russell-1000-value-etf-102002818.html",
+                     "time_published":  "20260803T104451",
+                     "authors":  [
+                                     "Zacks Equity Research"
+                                 ],
+                     "summary":  "The iShares Russell 1000 Value ETF (IWD) offers broad exposure to the Large Cap Value segment of the US equity market, holding assets over $82.05 billion. With an expense ratio of 0.18% and a Zacks ETF Rank of 1 (Strong Buy), it is considered a strong option for investors seeking exposure to large-cap value stocks. The fund\u0027s top holdings include Amazon.com Inc, Apple Inc, and Microsoft Corp, with significant allocation to the Financials sector.",
+                     "banner_image":  "https://s.yimg.com/lo/mysterio/api/34FB66808AB656E2F8BF4E7E1E4441701015EFDA22D0D2EB847C60964A3F6D7F/subgraphmysterio/resizefit_w960_h640;quality_80;format_webp/https:%2F%2Fmedia.zenfs.com%2Fen%2Fzacks.com%2F1a018a29aef5adbf5b4319f32058e209",
+                     "source":  "Yahoo Finance",
+                     "category_within_source":  "General",
+                     "source_domain":  "Yahoo Finance",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.916526"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.843481"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.293493,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "IWD",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.421898",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "BLK",
+                                                  "relevance_score":  "0.692957",
+                                                  "ticker_sentiment_score":  "0.295886",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AMZN",
+                                                  "relevance_score":  "0.632942",
+                                                  "ticker_sentiment_score":  "0.243227",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.627972",
+                                                  "ticker_sentiment_score":  "0.214202",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "MSFT",
+                                                  "relevance_score":  "0.592623",
+                                                  "ticker_sentiment_score":  "0.212597",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Who Owns Snapchat?",
+                     "url":  "https://www.bgr.com/2226377/who-owns-snapchat/",
+                     "time_published":  "20260803T104331",
+                     "authors":  [
+                                     "Joel Loynds"
+                                 ],
+                     "summary":  "Snapchat, initially launched in 2011 by Evan Spiegel, Bobby Murphy, and Reggie Brown, is now technically owned by its parent company, Snap Inc. While Snap Inc. is publicly traded, its founders, Spiegel and Murphy, retain overwhelming voting control due to their significant holdings in Class B and Class C stock. Major asset management and investment firms like FMR, Vanguard, JP Morgan, and BlackRock Inc. hold substantial shares in Snap Inc., but do not hold the majority voting power.",
+                     "banner_image":  "https://www.bgr.com/img/gallery/who-owns-snapchat/intro-1785348746.jpg",
+                     "source":  "www.bgr.com",
+                     "category_within_source":  "General",
+                     "source_domain":  "www.bgr.com",
+                     "topics":  [
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.940704"
+                                    },
+                                    {
+                                        "topic":  "mergers_and_acquisitions",
+                                        "relevance_score":  "0.843968"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.052661,
+                     "overall_sentiment_label":  "Neutral",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "SNAP",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.129838",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "GOOGL",
+                                                  "relevance_score":  "0.714971",
+                                                  "ticker_sentiment_score":  "0.114271",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "META",
+                                                  "relevance_score":  "0.713826",
+                                                  "ticker_sentiment_score":  "-0.147296",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.645288",
+                                                  "ticker_sentiment_score":  "0.142879",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Should iShares Russell 1000 ETF (IWB) Be on Your Investing Radar?",
+                     "url":  "https://sg.finance.yahoo.com/news/ishares-russell-1000-etf-iwb-102002486.html",
+                     "time_published":  "20260803T104241",
+                     "authors":  [
+                                     "Zacks Equity Research"
+                                 ],
+                     "summary":  "The iShares Russell 1000 ETF (IWB), launched in May 2000 and sponsored by Blackrock, is a passively managed ETF offering broad exposure to the Large Cap Blend segment of the US equity market with over $48.30 billion in assets. It features a low expense ratio of 0.15% and a 12-month trailing dividend yield of 0.92%, with significant allocation to Information Technology. IWB has performed well, up 9.81% year-to-date and 18.65% over the last year, and is considered a medium-risk option with a Zacks ETF Rank of 3 (Hold).",
+                     "banner_image":  "https://s.yimg.com/lo/mysterio/api/BF9384C4501A57DD07B2E6CD5AEB6EB8EE905A611DB5B176467F356C19CA4F84/subgraphmysterio/resizefit_w960_h640;quality_80;format_webp/https:%2F%2Fmedia.zenfs.com%2Fen%2Fzacks.com%2Fa7cdcede0bb5a646be035f4a7e678781",
+                     "source":  "Yahoo Finance Singapore",
+                     "category_within_source":  "General",
+                     "source_domain":  "Yahoo Finance Singapore",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.914489"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.725825"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.283894,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "IWB",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.327970",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "BLK",
+                                                  "relevance_score":  "0.737389",
+                                                  "ticker_sentiment_score":  "0.248027",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "NVDA",
+                                                  "relevance_score":  "0.615918",
+                                                  "ticker_sentiment_score":  "0.304097",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.572595",
+                                                  "ticker_sentiment_score":  "0.329578",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "MSFT",
+                                                  "relevance_score":  "0.578116",
+                                                  "ticker_sentiment_score":  "0.321097",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Pacer Advisors Inc. Increases Holdings in VeriSign, Inc. $VRSN",
+                     "url":  "https://www.marketbeat.com/instant-alerts/filing-pacer-advisors-inc-increases-holdings-in-verisign-inc-vrsn-2026-08-03/",
+                     "time_published":  "20260803T104239",
+                     "authors":  [
+                                     "MarketBeat"
+                                 ],
+                     "summary":  "Pacer Advisors Inc. significantly increased its stake in VeriSign, Inc. (NASDAQ:VRSN) by 324.4% in the first quarter, now owning 347,683 shares valued at approximately $86.4 million. Institutional investors collectively hold 92.9% of VRSN\u0027s outstanding stock, and analysts maintain a \"Buy\" consensus rating with an average price target of $328.75. VeriSign reported strong quarterly earnings, beating expectations with $2.38 EPS and $434.6 million in revenue, and declared a quarterly dividend of $0.81 per share.",
+                     "banner_image":  "https://www.marketbeat.com/logos/verisign-inc-logo-1200x675.png",
+                     "source":  "MarketBeat",
+                     "category_within_source":  "General",
+                     "source_domain":  "MarketBeat",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.949802"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.836223"
+                                    },
+                                    {
+                                        "topic":  "finance",
+                                        "relevance_score":  "0.715428"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.612286"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.230506,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "VRSN",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.465888",
+                                                  "ticker_sentiment_label":  "Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "GOOGL",
+                                                  "relevance_score":  "0.562111",
+                                                  "ticker_sentiment_score":  "0.271206",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.582664",
+                                                  "ticker_sentiment_score":  "0.129407",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "JPM",
+                                                  "relevance_score":  "0.568686",
+                                                  "ticker_sentiment_score":  "0.147032",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "C",
+                                                  "relevance_score":  "0.591254",
+                                                  "ticker_sentiment_score":  "0.143192",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Western Wealth Management LLC Makes New Investment in Skyworks Solutions, Inc. $SWKS",
+                     "url":  "https://www.marketbeat.com/instant-alerts/filing-western-wealth-management-llc-makes-new-investment-in-skyworks-solutions-inc-swks-2026-08-03/",
+                     "time_published":  "20260803T101026",
+                     "authors":  [
+                                     "MarketBeat"
+                                 ],
+                     "summary":  "Western Wealth Management LLC has made a new investment in Skyworks Solutions, Inc. (NASDAQ:SWKS), purchasing 22,810 shares valued at approximately $1.22 million. Skyworks Solutions recently exceeded quarterly earnings and revenue expectations but saw revenue decline year-over-year, and analyst sentiment remains cautious with a consensus \"Hold\" rating. The company also pays a $0.71 quarterly dividend, yielding about 4.6%, despite an elevated payout ratio.",
+                     "banner_image":  "https://www.marketbeat.com/logos/skyworks-solutions-inc-logo-1200x675.png?v=20240202075224",
+                     "source":  "MarketBeat",
+                     "category_within_source":  "General",
+                     "source_domain":  "MarketBeat",
+                     "topics":  [
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.924671"
+                                    },
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.838108"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.726598"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.156592,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "SWKS",
+                                                  "relevance_score":  "0.987599",
+                                                  "ticker_sentiment_score":  "-0.113859",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.722514",
+                                                  "ticker_sentiment_score":  "0.102351",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "AMD",
+                                                  "relevance_score":  "0.603502",
+                                                  "ticker_sentiment_score":  "0.311821",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "NVDA",
+                                                  "relevance_score":  "0.616200",
+                                                  "ticker_sentiment_score":  "0.319639",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "MSFT",
+                                                  "relevance_score":  "0.578224",
+                                                  "ticker_sentiment_score":  "0.153980",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 },
+                 {
+                     "title":  "Militia Capital Management LLC Purchases New Stake in Intel Corporation $INTC",
+                     "url":  "https://www.marketbeat.com/instant-alerts/filing-militia-capital-management-llc-purchases-new-stake-in-intel-corporation-intc-2026-08-03/",
+                     "time_published":  "20260803T100728",
+                     "authors":  [
+                                     "MarketBeat"
+                                 ],
+                     "summary":  "Militia Capital Management LLC has acquired a new position in Intel Corporation, purchasing 45,000 shares valued at approximately $1.986 million during the first quarter. This comes as other institutional investors like Vanguard Group Inc., State Street Corp, and Capital World Investors also adjusted their holdings in the chip maker. Wall Street analysts have issued mixed ratings for Intel, with a consensus \"Hold\" rating and a price target of $107.93, while the company faces both positive sentiment from potential Apple supply opportunities and negative sentiment regarding competitive challenges from TSMC.",
+                     "banner_image":  "https://www.marketbeat.com/logos/intel-co-logo-1200x675.png?v=20250605133156",
+                     "source":  "MarketBeat",
+                     "category_within_source":  "General",
+                     "source_domain":  "MarketBeat",
+                     "topics":  [
+                                    {
+                                        "topic":  "financial_markets",
+                                        "relevance_score":  "0.946797"
+                                    },
+                                    {
+                                        "topic":  "technology",
+                                        "relevance_score":  "0.838355"
+                                    },
+                                    {
+                                        "topic":  "earnings",
+                                        "relevance_score":  "0.725999"
+                                    }
+                                ],
+                     "overall_sentiment_score":  0.222484,
+                     "overall_sentiment_label":  "Somewhat-Bullish",
+                     "ticker_sentiment":  [
+                                              {
+                                                  "ticker":  "INTC",
+                                                  "relevance_score":  "1.000000",
+                                                  "ticker_sentiment_score":  "0.204299",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AAPL",
+                                                  "relevance_score":  "0.744554",
+                                                  "ticker_sentiment_score":  "0.344018",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              },
+                                              {
+                                                  "ticker":  "AMD",
+                                                  "relevance_score":  "0.614939",
+                                                  "ticker_sentiment_score":  "0.108347",
+                                                  "ticker_sentiment_label":  "Neutral"
+                                              },
+                                              {
+                                                  "ticker":  "NVDA",
+                                                  "relevance_score":  "0.565802",
+                                                  "ticker_sentiment_score":  "0.236595",
+                                                  "ticker_sentiment_label":  "Somewhat-Bullish"
+                                              }
+                                          ]
+                 }
+             ]
+}

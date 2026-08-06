@@ -189,7 +189,13 @@ class ValuationService:
         # Prefer Market Value of Equity if current_price and shares_outstanding are available.
         # Otherwise, fall back to Book Value of Equity from statement.
         equity_val = None
-        resolved_shares = shares_outstanding or dcf_inputs.get("shares_outstanding") or 1_000_000_000.0
+        resolved_shares = shares_outstanding or dcf_inputs.get("shares_outstanding")
+        if not resolved_shares or resolved_shares <= 0:
+            raise ValueError(
+                f"Valuation unavailable: Shares outstanding could not be resolved from yfinance for "
+                f"{company.company_name if company else 'unknown'}. "
+                "Cannot proceed with DCF — shares outstanding is required."
+            )
         if current_price is not None and current_price > 0 and resolved_shares > 0:
             equity_val = float(resolved_shares) * float(current_price)
             market_cap = equity_val
@@ -228,97 +234,141 @@ class ValuationService:
 
         # ── 2. DCF Valuation — derive UFCF inputs then call pure function ─────────
         # UFCF = EBIT × (1 - Tax Rate) + Depreciation - CapEx - Change in Working Capital
-        # Never use Net Income, EBITDA, or EBIT directly as FCF.
-        
+        # Prefer yfinance dcf_inputs FIRST for all components; fall back to DB/PDF statement ONLY if missing.
+
         # EBIT (operating_income)
-        ebit = float(stmt.operating_income) if stmt.operating_income is not None else None
-        if ebit is None:
-            if dcf_inputs.get("ebit") is not None:
-                ebit = float(dcf_inputs["ebit"])
-                logger.info(f"ValuationService: EBIT was missing in DB, resolved from yfinance: {ebit}")
-        
+        ebit = None
+        if dcf_inputs.get("ebit") is not None:
+            ebit = float(dcf_inputs["ebit"])
+        elif stmt.operating_income is not None:
+            ebit = float(stmt.operating_income) * 1e7
+            logger.info(f"ValuationService: EBIT was missing in yfinance, resolved from DB: {ebit:,.0f} INR")
+
         # Depreciation & Amortization
         dep = None
-        if stmt.ebitda is not None and stmt.operating_income is not None:
-            dep = float(stmt.ebitda - stmt.operating_income)
+        if dcf_inputs.get("depreciation") is not None:
+            dep = float(dcf_inputs["depreciation"])
+        elif stmt.ebitda is not None and stmt.operating_income is not None:
+            dep = float(stmt.ebitda - stmt.operating_income) * 1e7
             if dep < 0:
                 dep = 0.0
-        if dep is None:
-            if dcf_inputs.get("depreciation") is not None:
-                dep = float(dcf_inputs["depreciation"])
-                logger.info(f"ValuationService: Depreciation was missing in DB, resolved from yfinance: {dep}")
+            logger.info(f"ValuationService: Depreciation was missing in yfinance, resolved from DB: {dep:,.0f} INR")
         if dep is None:
             dep = 0.0
 
         # CapEx (always positive)
-        capex = float(abs(stmt.capex)) if stmt.capex is not None else None
-        if capex is None:
-            if dcf_inputs.get("capex") is not None:
-                capex = float(dcf_inputs["capex"])
-                logger.info(f"ValuationService: CapEx was missing in DB, resolved from yfinance: {capex}")
+        capex = None
+        if dcf_inputs.get("capex") is not None:
+            capex = float(dcf_inputs["capex"])
+        elif stmt.capex is not None:
+            capex = float(abs(stmt.capex)) * 1e7
+            logger.info(f"ValuationService: CapEx was missing in yfinance, resolved from DB: {capex:,.0f} INR")
         if capex is None:
             capex = 0.0
 
-        # Change in Working Capital (Net Income + Dep - OCF)
+        # Change in Working Capital
         wcap = None
-        if stmt.net_profit is not None and stmt.operating_cash_flow is not None:
-            wcap = float(stmt.net_profit) + dep - float(stmt.operating_cash_flow)
-        if wcap is None:
-            if dcf_inputs.get("change_in_working_capital") is not None:
-                wcap = float(dcf_inputs["change_in_working_capital"])
-                logger.info(f"ValuationService: Change in Working Capital was missing in DB, resolved from yfinance: {wcap}")
+        if dcf_inputs.get("change_in_working_capital") is not None:
+            wcap = float(dcf_inputs["change_in_working_capital"])
+        elif stmt.net_profit is not None and stmt.operating_cash_flow is not None:
+            wcap = (float(stmt.net_profit) + (dep / 1e7) - float(stmt.operating_cash_flow)) * 1e7
+            logger.info(f"ValuationService: Change in Working Capital was missing in yfinance, resolved from DB: {wcap:,.0f} INR")
         if wcap is None:
             wcap = 0.0
 
-        # Free Cash Flow directly from DB statement if available
-        fcf = float(stmt.free_cash_flow) if stmt.free_cash_flow is not None else None
-        if fcf is None:
-            if dcf_inputs.get("free_cash_flow") is not None:
-                fcf = float(dcf_inputs["free_cash_flow"])
-                logger.info(f"ValuationService: Free Cash Flow was missing in DB, resolved from yfinance: {fcf}")
+        # Free Cash Flow:
+        # PRIORITY 1 — yfinance FCF (absolute INR, reliable). Use this when available.
+        # PRIORITY 2 — DB FCF (stored in Crores from PDF parsing — multiply by 1e7 to get absolute INR).
+        #              DB FCF can be corrupted by PDF parsing errors (e.g. BHARTIARTL: -585345 Cr parsed
+        #              from a non-FCF line). Only use DB FCF as last resort.
+        # PRIORITY 3 — Computed UFCF from EBIT components.
+        yf_fcf = dcf_inputs.get("free_cash_flow")
+        db_fcf_raw = stmt.free_cash_flow  # in Crores
+        db_fcf_abs = float(db_fcf_raw) * 1e7 if db_fcf_raw is not None else None  # convert to absolute INR
 
-        # Calculate UFCF as fallback
+        fcf = None
+        if yf_fcf is not None and float(yf_fcf) > 0:
+            fcf = float(yf_fcf)
+            logger.info(f"ValuationService: Using yfinance FCF ({fcf:,.0f} INR) as baseline FCF.")
+        elif db_fcf_abs is not None and db_fcf_abs > 0:
+            fcf = db_fcf_abs
+            logger.info(f"ValuationService: yfinance FCF unavailable/non-positive, using DB FCF ({db_fcf_raw} Cr → {fcf:,.0f} INR) as baseline FCF.")
+        elif yf_fcf is not None:
+            logger.warning(f"ValuationService: yfinance FCF is non-positive ({yf_fcf:,.0f}). Falling through to UFCF computation.")
+        elif db_fcf_abs is not None:
+            logger.warning(f"ValuationService: DB FCF is non-positive ({db_fcf_raw} Cr → {db_fcf_abs:,.0f} INR). Falling through to UFCF computation.")
+
+        # Normalize DB Crore inputs to absolute INR for UFCF components (EBIT, dep, capex from DB are in Crores)
+        # yfinance EBIT/dep/capex are already in absolute INR
+        db_currency = dcf_inputs.get("currency") or "USD"
+        using_yfinance_ebit = dcf_inputs.get("ebit") is not None and ebit == float(dcf_inputs["ebit"])
+
+        # If EBIT came from DB (in Crores), normalize it
+        if not using_yfinance_ebit and ebit is not None and stmt.operating_income is not None:
+            ebit_abs = ebit * 1e7
+        else:
+            ebit_abs = ebit
+
+        # dep is derived from ebitda-operating_income (DB Crores) — normalize
+        dep_abs = dep * 1e7 if dep is not None and not using_yfinance_ebit else dep
+
+        # capex from DB is in Crores; from yfinance already absolute
+        if dcf_inputs.get("capex") is not None and capex == float(dcf_inputs["capex"]):
+            capex_abs = capex  # from yfinance, already absolute INR
+        elif capex is not None:
+            capex_abs = capex * 1e7  # from DB Crores
+        else:
+            capex_abs = 0.0
+
+        # wcap: if derived from DB (net_profit + dep - ocf), all were in Crores — normalize
+        if dcf_inputs.get("change_in_working_capital") is not None and wcap == float(dcf_inputs["change_in_working_capital"]):
+            wcap_abs = wcap  # from yfinance, already absolute INR
+        elif wcap is not None:
+            wcap_abs = wcap * 1e7  # from DB Crores
+        else:
+            wcap_abs = 0.0
+
+        # Calculate UFCF as fallback (all components now in absolute INR)
         ufcf_computed = None
-        if ebit is not None and dep is not None and capex is not None and wcap is not None:
-            ufcf_computed = ebit * (1 - tax_rate) + dep - capex - wcap
+        if ebit_abs is not None and dep_abs is not None:
+            ufcf_computed = ebit_abs * (1 - tax_rate) + dep_abs - capex_abs - wcap_abs
 
         if fcf is not None and fcf > 0:
             baseline_fcf = fcf
-            logger.info(f"ValuationService: Using direct Free Cash Flow ({baseline_fcf}) as baseline FCF.")
-        elif ufcf_computed is not None:
+        elif ufcf_computed is not None and ufcf_computed > 0:
             baseline_fcf = ufcf_computed
-            logger.info(f"ValuationService: Direct FCF is unavailable or non-positive. Using computed UFCF ({baseline_fcf}) as baseline FCF.")
+            logger.info(f"ValuationService: FCF not usable. Using computed UFCF ({baseline_fcf:,.0f} INR) as baseline FCF.")
         else:
             baseline_fcf = None
 
         # Log detailed intermediate valuation inputs before performing validation checks
         logger.info(
             f"DB-backed DCF Intermediate Valuation Inputs for {company.company_name if company else 'unknown'}:\n"
-            f"  - Free Cash Flow (Direct): {fcf}\n"
-            f"  - computed UFCF: {ufcf_computed}\n"
-            f"  - Selected Baseline FCF: {baseline_fcf}\n"
-            f"  - EBIT: {ebit}\n"
-            f"  - Depreciation: {dep}\n"
-            f"  - CapEx: {capex}\n"
-            f"  - Change in Working Capital: {wcap}\n"
-            f"  - Cash & Cash Equivalents: {cash}\n"
-            f"  - Total Debt: {debt}\n"
+            f"  - FCF (yfinance, abs INR): {yf_fcf}\n"
+            f"  - FCF (DB, Cr → abs INR): {db_fcf_raw} Cr → {db_fcf_abs}\n"
+            f"  - Selected Baseline FCF (abs INR): {baseline_fcf}\n"
+            f"  - EBIT (abs INR): {ebit_abs}\n"
+            f"  - Depreciation (abs INR): {dep_abs}\n"
+            f"  - CapEx (abs INR): {capex_abs}\n"
+            f"  - Change in Working Capital (abs INR): {wcap_abs}\n"
+            f"  - Cash & Cash Equivalents (abs INR): {cash}\n"
+            f"  - Total Debt (abs INR): {debt}\n"
             f"  - Shares Outstanding: {resolved_shares}\n"
             f"  - Tax Rate: {tax_rate}"
         )
 
-        # Validate critical derived inputs
+        # Validate critical derived inputs (shares already validated above at resolution time)
         missing_inputs = []
-        if resolved_shares <= 0:
-            missing_inputs.append("shares_outstanding")
         if baseline_fcf is None or baseline_fcf <= 0:
-            missing_inputs.append("free_cash_flow/ufcf (must be positive)")
+            missing_inputs.append("free_cash_flow/ufcf (must be positive — yfinance and DB FCF both unavailable or non-positive)")
 
         if missing_inputs:
             raise ValueError(
                 f"Valuation unavailable: Missing or invalid critical financial data for DCF. "
                 f"Missing: {', '.join(missing_inputs)}. Details: "
-                f"ebit={ebit}, dep={dep}, capex={capex}, wcap={wcap}, cash={cash}, debt={debt}, shares={resolved_shares}, tax_rate={tax_rate}"
+                f"yf_fcf={yf_fcf}, db_fcf={db_fcf_raw} Cr, ufcf={ufcf_computed}, "
+                f"ebit_abs={ebit_abs}, dep_abs={dep_abs}, capex_abs={capex_abs}, wcap_abs={wcap_abs}, "
+                f"cash={cash}, debt={debt}, shares={resolved_shares}, tax_rate={tax_rate}"
             )
 
         # Resolve FCF CAGR growth rate

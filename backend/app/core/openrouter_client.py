@@ -26,8 +26,8 @@ Retry / Fallback policy:
 
 Required headers (per OpenRouter docs):
   Authorization: Bearer {api_key}
-  HTTP-Referer: https://finsightai.app   (identifies the calling app)
-  X-Title: FinsightAI                    (display name in OpenRouter dashboard)
+  HTTP-Referer: https://finiq.app   (identifies the calling app)
+  X-Title: FinIQ                    (display name in OpenRouter dashboard)
 """
 from __future__ import annotations
 
@@ -37,13 +37,14 @@ from typing import List, Dict, NamedTuple, Optional
 
 import httpx
 from loguru import logger
+from app.core.config import settings
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
 _DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
-_HTTP_REFERER = "https://finsightai.app"
-_APP_TITLE = "FinsightAI"
+_HTTP_REFERER = "https://finiq.app"
+_APP_TITLE = "FinIQ"
 
 # HTTP status codes that should NOT be retried (auth / permission errors).
 _AUTH_STATUS_CODES = {401, 403}
@@ -397,13 +398,13 @@ def _ollama_fallback_sync(
 
 async def openrouter_chat(
     messages: List[Dict[str, str]],
-    model: str,
-    api_key: str,
-    base_url: str = _DEFAULT_BASE_URL,
+    model: Optional[str] = None,
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
     timeout: float = 120.0,
     max_retries: int = 1,
     caller_label: str = "OpenRouterClient",
-    allow_ollama_fallback: bool = False,
+    allow_ollama_fallback: bool = True,
 ) -> LLMResult:
     """
     Calls the OpenRouter /chat/completions endpoint.
@@ -418,6 +419,9 @@ async def openrouter_chat(
         - Raise the original exception on failure (OpenRouter only).
     - 401/403 → raise PermissionError immediately (no fallback regardless of flag).
     """
+    model = model or settings.OPENROUTER_MODEL
+    api_key = api_key or settings.OPENROUTER_API_KEY
+    base_url = base_url or settings.OPENROUTER_BASE_URL or _DEFAULT_BASE_URL
     url = f"{base_url.rstrip('/')}/chat/completions"
     headers = _build_headers(api_key)
     payload = {"model": model, "messages": messages}
@@ -441,8 +445,17 @@ async def openrouter_chat(
             async with httpx.AsyncClient(timeout=timeout) as client:
                 resp = await client.post(url, json=payload, headers=headers)
 
-            # Auth errors — fail immediately, never fall back to Ollama
+            # Auth errors (401/403)
             if resp.status_code in _AUTH_STATUS_CODES:
+                if allow_ollama_fallback and settings.OLLAMA_GENERATION_ENABLED:
+                    logger.warning(
+                        f"[{caller_label}] OpenRouter API key invalid/missing (HTTP {resp.status_code}) — "
+                        f"serving request via local Ollama fallback ({settings.OLLAMA_MODEL}). Fix OPENROUTER_API_KEY!"
+                    )
+                    last_exc = PermissionError(
+                        f"[{caller_label}] OpenRouter authentication failed (HTTP {resp.status_code}). Check OPENROUTER_API_KEY."
+                    )
+                    break
                 raise PermissionError(
                     f"[{caller_label}] OpenRouter authentication failed "
                     f"(HTTP {resp.status_code}). Check OPENROUTER_API_KEY."
@@ -539,13 +552,13 @@ async def openrouter_chat(
 
 def openrouter_chat_sync(
     messages: List[Dict[str, str]],
-    model: str,
-    api_key: str,
-    base_url: str = _DEFAULT_BASE_URL,
+    model: Optional[str] = None,
+    api_key: Optional[str] = None,
+    base_url: Optional[str] = None,
     timeout: float = 120.0,
     max_retries: int = 1,
     caller_label: str = "OpenRouterClient(sync)",
-    allow_ollama_fallback: bool = False,
+    allow_ollama_fallback: bool = True,
 ) -> LLMResult:
     """
     Synchronous version of openrouter_chat() for use in Celery workers or
@@ -554,6 +567,9 @@ def openrouter_chat_sync(
     Same retry and fallback policy as the async variant.
     Returns ``LLMResult(content, provider_used)``.
     """
+    model = model or settings.OPENROUTER_MODEL
+    api_key = api_key or settings.OPENROUTER_API_KEY
+    base_url = base_url or settings.OPENROUTER_BASE_URL or _DEFAULT_BASE_URL
     url = f"{base_url.rstrip('/')}/chat/completions"
     headers = _build_headers(api_key)
     payload = {"model": model, "messages": messages}
@@ -578,6 +594,15 @@ def openrouter_chat_sync(
                 resp = client.post(url, json=payload, headers=headers)
 
             if resp.status_code in _AUTH_STATUS_CODES:
+                if allow_ollama_fallback and settings.OLLAMA_GENERATION_ENABLED:
+                    logger.warning(
+                        f"[{caller_label}] OpenRouter API key invalid/missing (HTTP {resp.status_code}) — "
+                        f"serving request via local Ollama fallback ({settings.OLLAMA_MODEL}). Fix OPENROUTER_API_KEY!"
+                    )
+                    last_exc = PermissionError(
+                        f"[{caller_label}] OpenRouter authentication failed (HTTP {resp.status_code}). Check OPENROUTER_API_KEY."
+                    )
+                    break
                 raise PermissionError(
                     f"[{caller_label}] OpenRouter authentication failed "
                     f"(HTTP {resp.status_code}). Check OPENROUTER_API_KEY."

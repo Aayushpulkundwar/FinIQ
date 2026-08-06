@@ -2,7 +2,7 @@ from langchain_core.prompts import ChatPromptTemplate
  
 INVESTMENT_RESEARCH_PROMPT = ChatPromptTemplate.from_messages([
     ("system", """## Your Role & Objective
-You are an expert investment research analyst at FinsightAI. Your objective is to synthesize retrieved corporate documents and data to generate a natural, highly structured, investment-grade analyst report that directly addresses the user's query.
+You are an expert investment research analyst at FinIQ. Your objective is to synthesize retrieved corporate documents and data to generate a natural, highly structured, investment-grade analyst report that directly addresses the user's query.
  
 ---
  

@@ -10,6 +10,7 @@ import type {
   MarketDataResponse,
   FinancialSummaryResponse,
   RecommendationResponse,
+  CompanyNewsResponse,
 } from '../types';
 import { api } from '../services/api';
 import { isValidCompany } from '../utils';
@@ -17,7 +18,7 @@ import { isValidCompany } from '../utils';
 interface UIState {
   selectedCompany: Company | null;
   companies: Company[];
-  activeTab: 'chat' | 'financials' | 'valuation' | 'market';
+  activeTab: 'chat' | 'financials' | 'valuation' | 'market' | 'news';
   conversations: ChatMessage[];
   isGenerating: boolean;
   error: string | null;
@@ -39,6 +40,11 @@ interface UIState {
   analysisError: string | null;
   analysisLoadingMessage: string | null;
 
+  // Company News (APITube)
+  companyNews: CompanyNewsResponse | null;
+  isLoadingNews: boolean;
+  newsError: string | null;
+
   // Live market data (Yahoo Finance)
   liveMarketData: MarketDataResponse | null;
   isLoadingMarketData: boolean;
@@ -54,10 +60,11 @@ interface UIState {
 
   setSelectedCompany: (company: Company | null) => void;
   setCompanies: (companies: Company[]) => void;
-  setActiveTab: (tab: 'chat' | 'financials' | 'valuation' | 'market') => void;
+  setActiveTab: (tab: 'chat' | 'financials' | 'valuation' | 'market' | 'news') => void;
   fetchMarketData: (companyId: string) => Promise<void>;
   fetchFinancialSummary: (companyId: string) => Promise<void>;
   fetchRecommendation: (companyId: string) => Promise<void>;
+  fetchCompanyNews: (companyId: string) => Promise<void>;
   addMessage: (message: ChatMessage) => void;
   clearChat: () => void;
   fetchCompanies: () => Promise<void>;
@@ -65,9 +72,10 @@ interface UIState {
   checkHealth: () => Promise<void>;
   setUploadProgress: (progress: number) => void;
   setUploadStatus: (status: 'idle' | 'uploading' | 'processing' | 'completed' | 'failed') => void;
+  uploadDocument: (companyId: string, title: string, documentType: string, fiscalYear: number, quarter: number | null, file: File) => Promise<void>;
   deleteDocument: (id: string) => Promise<void>;
   sendMessage: (text: string) => Promise<void>;
-  runDomainAnalysis: (actionType: 'financial' | 'investment' | 'market' | 'event', context?: { title?: string; description?: string }) => Promise<void>;
+  runDomainAnalysis: (actionType: 'financial' | 'investment' | 'market' | 'event', context?: { title?: string; description?: string }, forceRefresh?: boolean) => Promise<void>;
   
   // Chat History Specific Actions
   loadChatHistory: (sessionId: string) => Promise<void>;
@@ -108,6 +116,10 @@ export const useUIStore = create<UIState>((set, get) => ({
 
 
 
+  companyNews: null,
+  isLoadingNews: false,
+  newsError: null,
+
   liveMarketData: null,
   isLoadingMarketData: false,
 
@@ -127,9 +139,12 @@ export const useUIStore = create<UIState>((set, get) => ({
       marketAnalysis: null,
       eventAnalysis: null,
       recommendation: null,
+      companyNews: null,
       analysisError: null,
+      newsError: null,
     });
     if (company) {
+      localStorage.setItem('finiq_last_selected_company_id', company.id);
       // 1. Retrieve cached chat session_id for active ticker from localStorage
       const ticker = company.ticker_symbol;
       const cachedSessionId = localStorage.getItem(`finiq_session_${ticker}`);
@@ -151,7 +166,10 @@ export const useUIStore = create<UIState>((set, get) => ({
       get().fetchFinancialSummary(company.id);
       // Fetch DCF recommendation from Yahoo Finance
       get().fetchRecommendation(company.id);
+      // Fetch company news from APITube / RSS
+      get().fetchCompanyNews(company.id);
     } else {
+      localStorage.removeItem('finiq_last_selected_company_id');
       // Clear data when no company is selected
       set({
         sessionId: null,
@@ -163,12 +181,29 @@ export const useUIStore = create<UIState>((set, get) => ({
         financialSummary: null,
         recommendation: null,
         recommendationError: null,
+        companyNews: null,
+        newsError: null,
       });
     }
   },
 
   setCompanies: (companies) => set({ companies }),
   setActiveTab: (tab) => set({ activeTab: tab, analysisError: null }),
+
+  fetchCompanyNews: async (companyId: string) => {
+    set({ isLoadingNews: true, newsError: null });
+    try {
+      const data = await api.getCompanyNews(companyId, 20);
+      set({ companyNews: data, isLoadingNews: false });
+    } catch (e: any) {
+      console.warn(`APITube News fetch failed for company ${companyId}: ${e.message || e}`);
+      set({
+        companyNews: null,
+        newsError: e.message || 'Failed to load company news from APITube',
+        isLoadingNews: false,
+      });
+    }
+  },
 
   fetchMarketData: async (companyId: string) => {
     set({ isLoadingMarketData: true });
@@ -222,28 +257,26 @@ export const useUIStore = create<UIState>((set, get) => ({
       const validCompanies = data.filter(isValidCompany);
       set({ companies: validCompanies });
 
-      // Restore active chat session if present in localStorage
-      const activeSessionId = localStorage.getItem('finiq_active_session_id');
-      if (activeSessionId && get().conversations.length === 0) {
-        set({ sessionId: activeSessionId });
-        get().loadChatHistory(activeSessionId);
-      }
-
-      // Auto-select fallback order:
       // 1. Keep existing selectedCompany if already valid
       const current = get().selectedCompany;
       if (current && isValidCompany(current)) return;
 
-      // 2. Pick first valid company from recentCompanies
-      const recentValid = get().recentCompanies.find(isValidCompany);
-      if (recentValid) {
-        get().setSelectedCompany(recentValid);
-      } else if (validCompanies.length > 0) {
-        // 3. Pick first valid company from listCompanies
-        get().setSelectedCompany(validCompanies[0]);
+      // 2. Priority: Restore last selected company stored in localStorage
+      const lastSelectedId = localStorage.getItem('finiq_last_selected_company_id');
+      const lastSelectedCompany = validCompanies.find((c) => c.id === lastSelectedId);
+
+      if (lastSelectedCompany) {
+        get().setSelectedCompany(lastSelectedCompany);
       } else {
-        // 4. Fallback to null
-        get().setSelectedCompany(null);
+        // 3. Fallback: Recent companies or first valid company in list
+        const recentValid = get().recentCompanies.find(isValidCompany);
+        if (recentValid) {
+          get().setSelectedCompany(recentValid);
+        } else if (validCompanies.length > 0) {
+          get().setSelectedCompany(validCompanies[0]);
+        } else {
+          get().setSelectedCompany(null);
+        }
       }
     } catch (e: any) {
       set({ error: e.message || 'Failed to fetch companies' });
@@ -270,6 +303,20 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   setUploadProgress: (progress) => set({ uploadProgress: progress }),
   setUploadStatus: (status) => set({ uploadStatus: status }),
+
+  uploadDocument: async (companyId, title, documentType, fiscalYear, quarter, file) => {
+    set({ uploadStatus: 'uploading', uploadProgress: 0, uploadError: null });
+    try {
+      await api.uploadDocument(companyId, title, documentType, fiscalYear, quarter, file, (progress) => {
+        set({ uploadProgress: progress });
+      });
+      set({ uploadStatus: 'completed', uploadProgress: 100 });
+      await get().fetchDocuments();
+    } catch (e: any) {
+      set({ uploadStatus: 'failed', uploadError: e.message || 'Upload failed' });
+      throw e;
+    }
+  },
 
   deleteDocument: async (id: string) => {
     try {
@@ -368,7 +415,7 @@ export const useUIStore = create<UIState>((set, get) => ({
     }
   },
 
-  runDomainAnalysis: async (actionType, context) => {
+  runDomainAnalysis: async (actionType, context, forceRefresh = false) => {
     const { selectedCompany } = get();
     if (actionType !== 'event' && !selectedCompany) {
       set({ analysisError: 'No company selected for analysis' });
@@ -384,7 +431,7 @@ export const useUIStore = create<UIState>((set, get) => ({
         try {
           const res = await api.analyzeInvestment(selectedCompany.id, 2026, (msg) => {
             set({ analysisLoadingMessage: msg });
-          });
+          }, forceRefresh);
           set({ investmentAnalysis: res });
         } catch (err: any) {
           console.error(`DCF Investment Analysis failed for company ${selectedCompany.company_name} (ID: ${selectedCompany.id}): ${err.message || err}`);

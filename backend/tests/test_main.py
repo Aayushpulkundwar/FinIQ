@@ -7,7 +7,7 @@ def test_root(client: TestClient) -> None:
     response = client.get("/")
     assert response.status_code == 200
     data = response.json()
-    assert "FinsightAI" in data["message"]
+    assert "FinIQ" in data["message"]
     assert "docs" in data
 
 

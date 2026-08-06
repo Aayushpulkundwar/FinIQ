@@ -30,6 +30,7 @@ TOOL_TO_AGENT = {
     "analyze_financial_intelligence": "financial_statement",
     "analyze_market_intelligence": "news_intelligence",
     "analyze_event_intelligence": "event_intelligence",
+    "analyze_event_impact": "event_intelligence",
     "calculate_company_valuation": "valuation",
     "search_knowledge": "risk_analysis",
     "generate_research_report": "report_generation"
@@ -72,24 +73,34 @@ async def supervisor_node(state: ExtendedAgentState, config: RunnableConfig) -> 
             # Cap query to 2000 chars as a generous safety limit for routing prompts
             query_for_routing = query[:2000]
             routing_system_prompt = (
-                "You are the Supervisor Router for FinsightAI. Determine which tools are needed "
+                "You are the Supervisor Router for FinIQ. Determine which tools are needed "
                 f"to answer this query: '{query_for_routing}'. You must return ONLY a JSON list of tool calls. "
-                "Each tool call must be an object with keys 'name' and 'args'.\n"
+                "Each tool call must be an object with keys 'name' and 'args'.\n\n"
                 "Available tools:\n"
-                "1. get_company_by_ticker (args: ticker_symbol)\n"
+                "1. get_company_by_ticker (args: ticker_symbol) - Resolves company metadata by ticker or name.\n"
                 "2. list_companies (args: {})\n"
-                "3. search_knowledge (args: query, company_id) - USE THIS as the DEFAULT for general Q&A, product information, business overview, strategy, R&D initiatives, partnerships, collaborations (e.g. H&M), future products, product pipeline, upcoming launches, Chairman's message, ESG, sustainability, and any query that retrieves facts from company documents\n"
+                "3. search_knowledge (args: query, company_id) - MANDATORY DEFAULT tool for all general company questions ('what does [Company] do?'), business overview, operations, strategy, ESG, management commentary, and document Q&A. DO NOT omit search_knowledge for general company questions.\n"
                 "4. list_documents (args: company_id)\n"
                 "5. get_document_metadata (args: document_id)\n"
-                "6. analyze_event_intelligence (args: title, description) - USE ONLY for broad external events: regulatory changes, macroeconomic shifts, geopolitical events, industry-wide disruptions. Do NOT use for company-specific product or partnership questions\n"
-                "7. analyze_financial_intelligence (args: company_id, fiscal_year, period_type) - USE for financial analysis, earnings, revenue, margins, balance sheet, cash flow, ratio, and financial performance queries\n"
-                "8. calculate_company_valuation (args: company_id, fiscal_year) - USE for DCF, WACC, intrinsic share price estimation, and sensitivity grids\n"
-                "9. generate_research_report (args: company_id, fiscal_year) - USE for comprehensive investment research reports\n"
-                "10. analyze_market_intelligence (args: company_id, industry, limit) - USE for market news, headlines, market update, sentiment, and market intelligence queries\n\n"
-                "IMPORTANT: When in doubt, prefer search_knowledge. Only use specialized tools (7-10) when the query explicitly asks for financial figures, valuations, market news, or full research reports.\n\n"
-                "Example response:\n"
-                '[{"name": "get_company_by_ticker", "args": {"ticker_symbol": "MSFT"}}, '
-                '{"name": "search_knowledge", "args": {"query": "revenue metrics"}}]'
+                "6. analyze_event_intelligence (args: title, description) - USE ONLY for broad external macroeconomic or regulatory events.\n"
+                "7. analyze_financial_intelligence (args: company_id, fiscal_year, period_type) - USE for financial analysis, earnings, revenue, margins, balance sheet, cash flow, ratio, and financial metrics.\n"
+                "8. calculate_company_valuation (args: company_id, fiscal_year) - USE for DCF, WACC, intrinsic share price estimation, and valuation grids.\n"
+                "9. generate_research_report (args: company_id, fiscal_year) - USE for comprehensive investment research reports.\n"
+                "10. analyze_market_intelligence (args: company_id, industry, limit) - USE MANDATORILY for all live news, recent headlines, press releases, current events, and market sentiment queries.\n"
+                "11. analyze_event_impact (args: query, company_id) - USE for event impact queries asking how a specific macro event or shock affects a company.\n\n"
+                "ROUTING RULES:\n"
+                "- For general company Q&A / business descriptions (e.g. 'what does TVS do?'), return get_company_by_ticker AND search_knowledge.\n"
+                "- For live news / recent headlines (e.g. 'most recent news related to TVS'), return get_company_by_ticker AND analyze_market_intelligence.\n"
+                "- For financial performance (e.g. 'what was FY2025 revenue'), return get_company_by_ticker AND analyze_financial_intelligence (and optionally search_knowledge).\n\n"
+                "Example 1 (General Q&A):\n"
+                'Query: "what does TVS do?"\n'
+                'Response: [{"name": "get_company_by_ticker", "args": {"ticker_symbol": "TVS"}}, {"name": "search_knowledge", "args": {"query": "what does TVS do?", "company_id": "__resolve_from_ticker__"}}]\n\n'
+                "Example 2 (Live News):\n"
+                'Query: "give me the most recent news related to TVS"\n'
+                'Response: [{"name": "get_company_by_ticker", "args": {"ticker_symbol": "TVS"}}, {"name": "analyze_market_intelligence", "args": {"company_id": "__resolve_from_ticker__"}}]\n\n'
+                "Example 3 (Financial Query):\n"
+                'Query: "what was FY2025 revenue for TVS"\n'
+                'Response: [{"name": "get_company_by_ticker", "args": {"ticker_symbol": "TVS"}}, {"name": "analyze_financial_intelligence", "args": {"company_id": "__resolve_from_ticker__", "fiscal_year": 2025}}]'
             )
             logger.info(
                 f"SupervisorNode: LLM routing invocation started "
@@ -158,7 +169,10 @@ async def supervisor_node(state: ExtendedAgentState, config: RunnableConfig) -> 
     is_placeholder = not routed_successfully
 
     if is_placeholder:
-        # Rule-based / Fallback Router Path
+        # Precedence Rule: The LLM-based router (routing_system_prompt) above is AUTHORITATIVE.
+        # This rule-based matcher ONLY runs as a fallback when the LLM routing call fails or times out.
+        # Only unambiguous news terms are included below to avoid misrouting financial questions
+        # like "recent updates on ROE trends" (which fall through to financial/search_knowledge).
         logger.info("Using deterministic rule-based router.")
         event_keywords = [
             "event", "impact", "macroeconomic", "geopolitical", "regulatory", "policy",
@@ -174,9 +188,10 @@ async def supervisor_node(state: ExtendedAgentState, config: RunnableConfig) -> 
         valuation_keywords = ["valuation", "dcf", "wacc", "intrinsic", "discounted cash", "sensitivity"]
         report_keywords = ["research report", "investment report", "report generator", "analyst report"]
         market_keywords = [
+            "news", "most recent news", "latest news", "news regarding", "news about",
+            "news for", "company news", "headlines", "press release",
             "market news", "market update", "market intelligence", "market sentiment",
-            "news headline", "market summary", "financial news", "latest news",
-            "news analysis", "market outlook", "market trends",
+            "market summary", "financial news", "market outlook", "market trends",
         ]
 
         # NOTE: Known Limitation - Coreference Resolution
@@ -217,10 +232,18 @@ async def supervisor_node(state: ExtendedAgentState, config: RunnableConfig) -> 
                 "args": {"company_id": "__resolve_from_ticker__"}
             })
         elif matches_any_keyword(query, event_keywords):
-            planned.append({
-                "name": "analyze_event_intelligence",
-                "args": {"title": query[:255], "description": query}
-            })
+            if has_ticker or any(k in query.lower() for k in ["affected", "affect", "impact on", "impact of", "how has"]):
+                if has_ticker:
+                    planned.append({"name": "get_company_by_ticker", "args": {"ticker_symbol": tickers[0]}})
+                planned.append({
+                    "name": "analyze_event_impact",
+                    "args": {"query": query, "company_id": "__resolve_from_ticker__"}
+                })
+            else:
+                planned.append({
+                    "name": "analyze_event_intelligence",
+                    "args": {"title": query[:255], "description": query}
+                })
         elif matches_any_keyword(query, market_keywords):
             industry_hint = None
             for ind in ["tech", "banking", "energy", "pharma", "auto", "retail", "telecom"]:
@@ -296,7 +319,7 @@ async def execute_agent_node(agent_name: str, state: ExtendedAgentState, config:
 
             # Resolve company_id placeholder: prefer state, then fall back to first DB company
             needs_company_id = (
-                args.get("company_id") == "__resolve_from_ticker__"
+                args.get("company_id") in [None, "__resolve_from_ticker__"]
                 or (name == "search_knowledge" and not args.get("company_id"))
             )
             if needs_company_id:
@@ -308,21 +331,30 @@ async def execute_agent_node(agent_name: str, state: ExtendedAgentState, config:
                         from app.models.document_chunk import DocumentChunk
                         from sqlalchemy import select, func
                         company_svc = CompanyService(db)
-                        # Pick the first company that actually has ingested document chunks
-                        # (avoids defaulting to an empty company that has no knowledge base)
-                        chunk_count_stmt = (
-                            select(DocumentChunk.company_id, func.count(DocumentChunk.id).label("cnt"))
-                            .group_by(DocumentChunk.company_id)
-                            .order_by(func.count(DocumentChunk.id).desc())
-                            .limit(1)
-                        )
-                        chunk_res = await db.execute(chunk_count_stmt)
-                        top_company_id = chunk_res.scalars().first()
-                        if top_company_id:
-                            fallback = await company_svc.repository.get(top_company_id)
+                        all_companies = await company_svc.repository.get_multi()
+                        q_text = state.get("user_query", "").lower()
+                        matched_comp = None
+                        for c in all_companies:
+                            c_tick = c.ticker_symbol.lower().split(".")[0]
+                            c_name = c.company_name.lower()
+                            if (c_tick and c_tick in q_text) or c_name in q_text or (len(c_tick) >= 3 and c_tick in q_text.split()) or ("tvs" in q_text and "tvs" in c_name):
+                                matched_comp = c
+                                break
+
+                        if matched_comp:
+                            fallback = matched_comp
                         else:
-                            all_companies = await company_svc.repository.get_multi(limit=1)
-                            fallback = all_companies[0] if all_companies else None
+                            # Pick the first company that actually has ingested document chunks
+                            chunk_count_stmt = (
+                                select(DocumentChunk.company_id, func.count(DocumentChunk.id).label("cnt"))
+                                .group_by(DocumentChunk.company_id)
+                                .order_by(func.count(DocumentChunk.id).desc())
+                                .limit(1)
+                            )
+                            chunk_res = await db.execute(chunk_count_stmt)
+                            top_company_id = chunk_res.scalars().first()
+                            fallback = (await company_svc.repository.get(top_company_id)) if top_company_id else (all_companies[0] if all_companies else None)
+
                         if fallback:
                             company_details = {
                                 "id": str(fallback.id),
@@ -377,6 +409,25 @@ async def execute_agent_node(agent_name: str, state: ExtendedAgentState, config:
                             "section_title": ev.get("section_title"),
                             "similarity_score": ev.get("similarity_score"),
                         })
+            elif name == "analyze_market_intelligence" and result:
+                news_list = result.get("related_news", [])
+                for news in news_list:
+                    title = news.get("title") if isinstance(news, dict) else getattr(news, "title", "")
+                    source = news.get("source") if isinstance(news, dict) else getattr(news, "source", "")
+                    url = news.get("url") if isinstance(news, dict) else getattr(news, "url", "")
+                    pub_at = news.get("published_at") if isinstance(news, dict) else getattr(news, "published_at", "")
+                    summary = news.get("summary") if isinstance(news, dict) else getattr(news, "summary", getattr(news, "snippet", ""))
+
+                    retrieved_chunks.append({
+                        "chunk_text": summary or title,
+                        "document_title": f"{source} — {title}" if source else title,
+                        "page_number": None,
+                        "section_title": news.get("category", "news") if isinstance(news, dict) else "news",
+                        "similarity_score": news.get("relevance_score", 1.0) if isinstance(news, dict) else 1.0,
+                        "source": source,
+                        "url": url,
+                        "published_at": pub_at,
+                    })
 
         except Exception as e:
             logger.error(f"Agent '{agent_name}' encountered error running tool '{name}': {e}")
@@ -444,6 +495,8 @@ async def report_generation_node(state: ExtendedAgentState, config: RunnableConf
         final_context["financial_intelligence"] = agent_outputs["analyze_financial_intelligence"]
     if "calculate_company_valuation" in agent_outputs:
         final_context["valuation"] = agent_outputs["calculate_company_valuation"]
+    if "analyze_market_intelligence" in agent_outputs:
+        final_context["market_intelligence"] = agent_outputs["analyze_market_intelligence"]
     if "generate_research_report" in agent_outputs:
         final_context["research_report"] = agent_outputs["generate_research_report"]
 

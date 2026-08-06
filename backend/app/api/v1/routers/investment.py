@@ -25,19 +25,53 @@ async def analyze_investment(
 ) -> InvestmentTaskEnqueueResponse:
     """
     Coordinates Valuation and Investment Research report generation for a company asynchronously.
-    Enqueues a Celery background task and returns immediately with a task_id.
+    Deduplicates active Celery tasks and serves 30-minute cached results from Redis.
     """
+    from app.core.cache import cache
+    from app.core.utils import normalize_fiscal_year
+
+    company_id_str = str(payload.company_id)
+    fiscal_year = normalize_fiscal_year(payload.fiscal_year)
+    result_cache_key = f"investment_analysis:v1:{company_id_str}:{fiscal_year}"
+    active_lock_key = f"investment_task_active:{company_id_str}:{fiscal_year}"
+
     logger.bind(
-        company_id=str(payload.company_id),
-        fiscal_year=payload.fiscal_year
-    ).info("POST /api/v1/investment/analyze invoked. Enqueuing task...")
+        company_id=company_id_str,
+        fiscal_year=fiscal_year
+    ).info("POST /api/v1/investment/analyze invoked.")
 
     try:
-        # Enqueue background analysis task
+        # 1. Return cached result immediately if available
+        cached_result = await cache.get(result_cache_key)
+        if cached_result:
+            logger.info(f"Returning cached investment analysis result for company {company_id_str}, FY {fiscal_year}")
+            return InvestmentTaskEnqueueResponse(
+                task_id=f"cached:{company_id_str}:{fiscal_year}",
+                status="SUCCESS"
+            )
+
+        # 2. Re-use existing active Celery task if running in non-terminal state
+        active_task_id = await cache.get(active_lock_key)
+        if active_task_id:
+            task_res = AsyncResult(active_task_id, app=celery_app)
+            if task_res.state in ["PENDING", "STARTED", "PROGRESS"]:
+                logger.info(f"Re-using active Celery task {active_task_id} for company {company_id_str}, FY {fiscal_year}")
+                return InvestmentTaskEnqueueResponse(
+                    task_id=active_task_id,
+                    status=task_res.state
+                )
+            else:
+                logger.warning(f"Active task lock {active_task_id} is in terminal state ({task_res.state}). Clearing stale lock.")
+                await cache.delete(active_lock_key)
+
+        # 3. Enqueue fresh Celery background task
         task = run_investment_analysis_task.delay(
-            str(payload.company_id),
-            payload.fiscal_year
+            company_id_str,
+            fiscal_year
         )
+        
+        # Set active task lock with 300s (5-minute) safety TTL
+        await cache.set(active_lock_key, task.id, ttl=300)
         
         return InvestmentTaskEnqueueResponse(
             task_id=task.id,
@@ -54,13 +88,28 @@ async def analyze_investment(
 @router.get("/tasks/{task_id}", response_model=InvestmentTaskStatusResponse)
 async def get_task_status(task_id: str) -> InvestmentTaskStatusResponse:
     """
-    Query the status of an enqueued investment analysis Celery task.
+    Query the status of an enqueued investment analysis Celery task or cached result.
     """
+    from app.core.cache import cache
+    from app.core.utils import normalize_fiscal_year
+
+    if task_id.startswith("cached:"):
+        parts = task_id.split(":")
+        if len(parts) >= 3:
+            co_id = parts[1]
+            fy = normalize_fiscal_year(parts[2])
+            cached_result = await cache.get(f"investment_analysis:v1:{co_id}:{fy}")
+            if cached_result:
+                return InvestmentTaskStatusResponse(
+                    task_id=task_id,
+                    status="SUCCESS",
+                    result=cached_result
+                )
+
     res = AsyncResult(task_id, app=celery_app)
     state = res.state
 
     if state == "PROGRESS":
-        # Celery stores progress metadata in res.info
         message = None
         if isinstance(res.info, dict):
             message = res.info.get("message")
@@ -70,6 +119,14 @@ async def get_task_status(task_id: str) -> InvestmentTaskStatusResponse:
             message=message or "Processing task..."
         )
     elif state == "SUCCESS":
+        if res.result and isinstance(res.result, dict):
+            company_id = res.result.get("company_id")
+            fy_raw = res.result.get("fiscal_year") or 2026
+            fy = normalize_fiscal_year(fy_raw)
+            if company_id:
+                cache_key = f"investment_analysis:v1:{company_id}:{fy}"
+                await cache.set(cache_key, res.result, ttl=1800)
+                await cache.delete(f"investment_task_active:{company_id}:{fy}")
         return InvestmentTaskStatusResponse(
             task_id=task_id,
             status="SUCCESS",
@@ -82,7 +139,6 @@ async def get_task_status(task_id: str) -> InvestmentTaskStatusResponse:
             error=str(res.result)
         )
     else:
-        # PENDING, STARTED, RETRY, etc.
         return InvestmentTaskStatusResponse(
             task_id=task_id,
             status=state

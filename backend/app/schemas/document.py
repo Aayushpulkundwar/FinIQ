@@ -1,8 +1,9 @@
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.models.document import DocumentType, UploadStatus, ProcessingStatus
+from app.core.utils import normalize_fiscal_year
 
 
 class DocumentBase(BaseModel):
@@ -12,6 +13,11 @@ class DocumentBase(BaseModel):
     document_type: DocumentType = Field(..., description="Type of document")
     fiscal_year: int = Field(..., description="Fiscal year (e.g. 2026)")
     quarter: Optional[int] = Field(None, ge=1, le=4, description="Fiscal quarter (1-4, nullable)")
+
+    @field_validator("fiscal_year", mode="before")
+    @classmethod
+    def _normalize_fy(cls, v):
+        return normalize_fiscal_year(v)
 
 
 class DocumentCreate(DocumentBase):

@@ -1,3 +1,4 @@
+import asyncio
 import re
 from typing import List, Optional, Dict, Any, Tuple
 from uuid import UUID
@@ -261,8 +262,14 @@ class RetrievalService(BaseService[DocumentChunkRepository]):
         for q in queries:
             query_vector = None
             try:
-                # Encode search string into embedding vector
-                query_vector = self.embeddings.get_embedding(q)
+                # Encode search string into embedding vector.
+                # run_in_executor offloads the blocking sync calls (Redis lock + httpx)
+                # to a thread-pool thread so the FastAPI event loop stays free for
+                # other concurrent requests during the ~0.8s Ollama round-trip.
+                loop = asyncio.get_event_loop()
+                query_vector = await loop.run_in_executor(
+                    None, self.embeddings.get_embedding, q
+                )
             except Exception as e:
                 embedding_failed = True
                 logger.error(

@@ -1,6 +1,6 @@
 import io
 import docx
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from app.rag.parsers.base import BaseParser
 
 
@@ -9,8 +9,11 @@ class DocxParser(BaseParser):
     Parser for extracting text from Microsoft Word (.docx) files.
     Groups paragraphs into logical page boundaries to support chunk indexing.
     """
-    def parse(self, file_bytes: bytes) -> List[Dict[str, Any]]:
-        doc = docx.Document(io.BytesIO(file_bytes))
+    def parse(self, file_input: Union[bytes, str]) -> List[Dict[str, Any]]:
+        if isinstance(file_input, str):
+            doc = docx.Document(file_input)
+        else:
+            doc = docx.Document(io.BytesIO(file_input))
         paragraphs = [p.text for p in doc.paragraphs if p.text.strip()]
 
         pages = []

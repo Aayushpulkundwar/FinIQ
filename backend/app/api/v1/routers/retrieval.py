@@ -68,6 +68,13 @@ async def search_knowledge(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         )
+    except RuntimeError as e:
+        # Ollama lock acquisition timed out — surface as 503 not 500
+        logger.warning(f"Retrieval temporarily unavailable (Ollama busy): {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(e),
+        )
     except Exception as e:
         logger.error(f"Error during knowledge retrieval search: {e}")
         raise HTTPException(

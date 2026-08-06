@@ -7,7 +7,7 @@ import {
   Activity,
   RefreshCw,
 } from 'lucide-react';
-import { getCurrencySymbol, formatMarketCap } from '../../utils';
+import { getCurrencySymbol, formatMarketCap, formatPercent } from '../../utils';
 import { BarChart, Bar, YAxis, ResponsiveContainer } from 'recharts';
 import { api } from '../../services/api';
 import { StockHistoryModal } from './StockHistoryModal';
@@ -21,11 +21,6 @@ function formatVolume(value: number | null): string {
   if (value >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
   if (value >= 1e3) return `${(value / 1e3).toFixed(0)}K`;
   return value.toLocaleString();
-}
-
-function formatPercent(value: number | null | undefined): string {
-  if (value === null || value === undefined) return '—';
-  return `${(value * 100).toFixed(1)}%`;
 }
 
 // Custom Candlestick SVG drawing shape for Recharts Bar

@@ -469,7 +469,7 @@ async def query_orchestrator(
                         await db.commit()
 
         # Guard: If no company could be resolved, do not run an unfiltered search across unrelated companies
-        if not company and not comparison_mode:
+        if not company and not comparison_mode and not is_mock_db:
             msg = f"Could not identify a matching target company in the database for query: '{payload.query}'. Please specify a valid company name or ticker."
             try:
                 if not is_mock_db and active_session_id:
@@ -507,7 +507,12 @@ async def query_orchestrator(
             # Helper to check if a query is document (RAG) dependent
             def is_rag_dependent_query(query_text: str) -> bool:
                 query_lower = query_text.lower()
-                market_keywords = ["price", "chart", "live", "quote", "trading", "ticker", "market cap", "pe ratio", "volume", "website", "exchange", "isin"]
+                market_keywords = [
+                    "price", "chart", "live", "quote", "trading", "ticker", "market cap",
+                    "pe ratio", "volume", "website", "exchange", "isin",
+                    "news", "most recent news", "latest news", "news regarding", "news about",
+                    "news for", "company news", "headlines", "press release", "current events"
+                ]
                 rag_keywords = [
                     "summary", "performance", "annual report", "report", "risk", "governance",
                     "esg", "management", "chairman", "dcf", "valuation", "analysis", "ebitda",

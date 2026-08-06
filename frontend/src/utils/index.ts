@@ -71,7 +71,7 @@ export function getCurrencySymbol(currency: string | null | undefined): string {
     INR: '₹', USD: '$', GBP: '£', EUR: '€',
     CAD: 'C$', AUD: 'A$', JPY: '¥', HKD: 'HK$', SGD: 'S$',
   };
-  return map[(currency ?? '').toUpperCase()] ?? (currency ?? '$');
+  return map[(currency ?? '').toUpperCase()] ?? '';
 }
 
 /**

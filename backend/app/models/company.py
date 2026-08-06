@@ -6,7 +6,7 @@ from app.models.base import BaseModel
 
 class Company(BaseModel):
     """
-    SQLAlchemy model representing a Company entity in the FinsightAI platform.
+    SQLAlchemy model representing a Company entity in the FinIQ platform.
     Inherits primary key (UUID) and timestamps (created_at, updated_at) from BaseModel.
     """
     __tablename__ = "companies"

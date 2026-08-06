@@ -30,6 +30,8 @@ import pandas as pd
 from loguru import logger
 
 
+import re
+
 # ---------------------------------------------------------------------------
 # Exchange → yfinance suffix table
 # ---------------------------------------------------------------------------
@@ -38,7 +40,6 @@ from loguru import logger
 _EXCHANGE_SUFFIX: dict[str, str] = {
     "NSE":    ".NS",   # National Stock Exchange (India)
     "BSE":    ".BO",   # Bombay Stock Exchange (India)
-    "NSE/BSE": ".NS",  # NSE/BSE (India) - default to NSE suffix
     "NASDAQ": "",      # NASDAQ (USA)
     "NYSE":   "",      # New York Stock Exchange (USA)
     "LSE":    ".L",    # London Stock Exchange (UK)
@@ -49,25 +50,43 @@ _EXCHANGE_SUFFIX: dict[str, str] = {
 
 def _resolve_ticker(ticker_symbol: str, exchange: str) -> str:
     """
-    Return the fully-qualified yfinance ticker for *ticker_symbol* on
-    *exchange*.  Falls back to appending no suffix (most US listings work
-    without one) and logs a warning so new exchanges can be added easily.
+    Return the fully-qualified yfinance ticker for *ticker_symbol* on *exchange*.
+    Tokenizes composite exchange strings (e.g. 'NSE, BSE', 'BSE/NSE', 'nse, bse')
+    and matches individual tokens against _EXCHANGE_SUFFIX (prioritizing NSE -> .NS).
+    Falls back gracefully with a warning if no token matches.
     """
+    if not ticker_symbol:
+        return ""
+
     ticker_upper = ticker_symbol.strip().upper()
     # Avoid duplicate suffixing if ticker already contains a known suffix
     for suf in _EXCHANGE_SUFFIX.values():
         if suf and ticker_upper.endswith(suf):
             return ticker_upper
 
-    exchange_upper = (exchange or "").strip().upper()
-    if exchange_upper not in _EXCHANGE_SUFFIX:
-        logger.warning(
-            f"Unknown exchange '{exchange}' for ticker '{ticker_symbol}'. "
-            "Attempting raw ticker (no suffix). "
-            "Add the exchange to _EXCHANGE_SUFFIX in market_data.py if needed."
-        )
-    suffix = _EXCHANGE_SUFFIX.get(exchange_upper, "")
-    return f"{ticker_upper}{suffix}"
+    exchange_raw = (exchange or "").strip()
+    if not exchange_raw:
+        return ticker_upper
+
+    # Tokenize exchange string by commas, slashes, and whitespace
+    tokens = [t.strip().upper() for t in re.split(r"[,\s/]+", exchange_raw) if t.strip()]
+
+    # Match tokens against _EXCHANGE_SUFFIX (prioritizing NSE if present)
+    matched_suffix = None
+    for token in tokens:
+        if token in _EXCHANGE_SUFFIX:
+            matched_suffix = _EXCHANGE_SUFFIX[token]
+            if token == "NSE":
+                break
+
+    if matched_suffix is not None:
+        return f"{ticker_upper}{matched_suffix}"
+
+    logger.warning(
+        f"Unknown exchange string '{exchange}' (tokens={tokens}) for ticker '{ticker_symbol}'. "
+        "Attempting raw ticker (no suffix)."
+    )
+    return ticker_upper
 
 
 # ---------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TopNavbar } from './components/Layout/TopNavbar';
+import { MarketTicker } from './components/Layout/MarketTicker';
 import { LeftSidebar } from './components/Layout/LeftSidebar';
 import { CenterWorkspace } from './components/Layout/CenterWorkspace';
 import { RightContextPanel } from './components/Layout/RightContextPanel';
@@ -17,7 +18,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const FinsightAIWorkspaceContent: React.FC = () => {
+const FinIQWorkspaceContent: React.FC = () => {
   const { error } = useUIStore();
   const { isOpen: isDebugOpen } = useDebugStore();
 
@@ -29,7 +30,10 @@ const FinsightAIWorkspaceContent: React.FC = () => {
       {/* 1. Top Navigation */}
       <TopNavbar />
 
-      {/* 2. Main Sidebar & Workspaces */}
+      {/* 2. Live Scrolling Top Movers Ticker Strip */}
+      <MarketTicker />
+
+      {/* 3. Main Sidebar & Workspaces */}
       <div className="workspace-container">
         {/* Left Drawer / Sidebar */}
         <LeftSidebar />
@@ -86,7 +90,7 @@ const FinsightAIWorkspaceContent: React.FC = () => {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <FinsightAIWorkspaceContent />
+      <FinIQWorkspaceContent />
     </QueryClientProvider>
   );
 }

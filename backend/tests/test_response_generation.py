@@ -139,11 +139,12 @@ async def test_response_generation_openrouter_failure():
     """Verify ResponseGenerationService handles OpenRouter failure by returning degraded response with error_message."""
     with patch("app.services.response_generation.openrouter_chat", AsyncMock(side_effect=Exception("OpenRouter API Error: 502 Bad Gateway"))), \
          patch("app.core.config.settings.ALLOW_MOCK_LLM", False), \
-         patch("app.core.config.settings.OPENROUTER_API_KEY", "sk-valid-openrouter-key"):
+         patch("app.core.config.settings.OPENROUTER_API_KEY", "sk-valid-openrouter-key"), \
+         patch("app.core.cache.cache.get", AsyncMock(return_value=None)):
          
         service = ResponseGenerationService()
         response = await service.generate_response(
-            user_query="How does Tesla perform?",
+            user_query="How does Tesla perform in failure test?",
             company_details=None,
             document_metadata=[],
             retrieved_chunks=[{"chunk_text": "Tesla EV details.", "document_title": "Tesla doc", "page_number": 1}]

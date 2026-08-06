@@ -257,52 +257,36 @@ def test_fallback_router_valuation_routing():
 # ─────────────────────────────────────────────
 
 def test_api_investment_analyze_success(client: TestClient):
-    """Verifies POST /api/v1/investment/analyze compiles valuation and returns 200 response."""
+    """Verifies POST /api/v1/investment/analyze enqueues task and returns 202 response."""
     company_id = uuid.uuid4()
 
-    mock_wacc = WaccDetails(cost_of_equity=0.1, cost_of_debt=0.05, equity_weight=0.8, debt_weight=0.2, wacc=0.09)
-    mock_dcf = DcfDetails(
-        baseline_fcf=100.0, fcf_growth_rate=0.05, projected_fcfs=[105, 110, 115, 120, 126],
-        terminal_growth_rate=0.02, terminal_value=1800, enterprise_value=1500, equity_value=1400,
-        shares_outstanding=100, intrinsic_share_price=14.0
-    )
-    mock_val_summary = ValuationSummary(
-        wacc_details=mock_wacc, dcf_details=mock_dcf, sensitivity_grid=[
-            SensitivityPoint(wacc=0.09, growth_rate=0.02, intrinsic_price=14.0)
-        ], confidence_score=0.8
-    )
-
-    with patch("app.api.v1.routers.investment.ValuationService") as MockValSvc, \
-         patch("app.api.v1.routers.investment.ResearchReportService") as MockReportSvc:
-        
-        MockValSvc.return_value.calculate_valuation = AsyncMock(return_value=mock_val_summary)
-        MockReportSvc.return_value.generate_report = AsyncMock(return_value="# INVESTMENT RESEARCH REPORT: TechCorp Inc\n")
+    with patch("app.api.v1.routers.investment.run_investment_analysis_task") as mock_task:
+        mock_task.delay.return_value.id = "test-task-id-123"
+        mock_task.delay.return_value.status = "PENDING"
 
         response = client.post("/api/v1/investment/analyze", json={
             "company_id": str(company_id),
             "fiscal_year": 2025
         })
 
-    assert response.status_code == 200
+    assert response.status_code == 202
     data = response.json()
-    assert data["company_name"] == "TechCorp Inc"
-    assert data["intrinsic_value"] == 14.0
-    assert len(data["sensitivity_analysis"]) == 1
-    assert "INVESTMENT RESEARCH REPORT" in data["research_report"]
+    assert data["task_id"] == "test-task-id-123"
+    assert data["status"] == "PENDING"
 
 
 def test_api_investment_analyze_not_found(client: TestClient):
-    """Verifies POST /api/v1/investment/analyze returns 404 on missing company."""
+    """Verifies POST /api/v1/investment/analyze returns 500 when task enqueue fails."""
     company_id = uuid.uuid4()
 
-    with patch("app.api.v1.routers.investment.ValuationService") as MockValSvc:
-        MockValSvc.return_value.calculate_valuation = AsyncMock(side_effect=ValueError("Company not found."))
+    with patch("app.api.v1.routers.investment.run_investment_analysis_task") as mock_task:
+        mock_task.delay.side_effect = Exception("Celery task queue connection error")
 
         response = client.post("/api/v1/investment/analyze", json={
             "company_id": str(company_id)
         })
 
-    assert response.status_code == 404
+    assert response.status_code == 500
 
 
 def test_api_company_recommendation_success(client: TestClient):

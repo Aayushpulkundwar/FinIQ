@@ -19,12 +19,16 @@ class FinancialRepository(BaseRepository[FinancialStatement]):
         company_id: UUID,
         fiscal_year: int,
         period_type: PeriodType,
-        currency: str = "USD"
+        currency: str,
     ) -> FinancialPeriod:
         """
         Fetches an existing FinancialPeriod or creates a new one.
         Ensures idempotent upsert for the same company/year/period combination.
+        Requires explicit reporting currency — silent defaulting is disallowed.
         """
+        if not currency or not str(currency).strip():
+            raise ValueError("Explicit currency is required when creating a FinancialPeriod — silent defaulting is disallowed.")
+
         stmt = select(FinancialPeriod).where(
             FinancialPeriod.company_id == company_id,
             FinancialPeriod.fiscal_year == fiscal_year,
@@ -38,7 +42,7 @@ class FinancialRepository(BaseRepository[FinancialStatement]):
                 company_id=company_id,
                 fiscal_year=fiscal_year,
                 period_type=period_type,
-                currency=currency
+                currency=currency.strip().upper()
             )
             self.db.add(period)
             await self.db.flush()

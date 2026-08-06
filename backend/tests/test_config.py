@@ -13,7 +13,7 @@ def test_default_config_loading():
         MINIO_ACCESS_KEY="minioadmin",
         MINIO_SECRET_KEY="minioadmin",
     )
-    assert config.PROJECT_NAME == "FinsightAI"
+    assert config.PROJECT_NAME == "FinIQ"
     assert config.ENVIRONMENT == "local"
     assert config.DEBUG is True
     # Celery Broker/Backend should be auto-assembled

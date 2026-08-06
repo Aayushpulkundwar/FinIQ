@@ -1,4 +1,6 @@
+import math
 from typing import Optional, Tuple, List
+from loguru import logger
 from app.schemas.financial import FinancialStatementData, FinancialMetricsData, MetricProvenance
 
 
@@ -49,6 +51,11 @@ class MetricCalculator:
         value = _safe_divide(net_profit, shareholders_equity)
         if value is not None:
             value = round(value * 100, 4)
+            if abs(value) > 200.0:
+                logger.warning(
+                    f"Calculated ROE value {value}% exceeds sanity bound of ±200%. "
+                    f"Inputs: net_profit={net_profit}, shareholders_equity={shareholders_equity}"
+                )
         return value, MetricProvenance(
             metric_name="roe",
             formula="net_profit / shareholders_equity * 100",
@@ -207,5 +214,13 @@ class MetricCalculator:
         kwargs["current_ratio"] = v
         if v is not None:
             provenance.append(p)
+
+        def _clamp(val: Optional[float]) -> Optional[float]:
+            if val is None or math.isnan(val) or math.isinf(val):
+                return None
+            return max(-9999.0, min(9999.0, round(float(val), 4)))
+
+        for k in kwargs:
+            kwargs[k] = _clamp(kwargs[k])
 
         return FinancialMetricsData(**kwargs), provenance

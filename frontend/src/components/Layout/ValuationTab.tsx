@@ -1,16 +1,18 @@
 import React from 'react';
 import { useUIStore } from '../../store/useUIStore';
 import { SensitivityGrid } from '../UI/SensitivityGrid';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { formatPercent, formatMarketCap, getCurrencySymbol } from '../../utils';
 
 export const ValuationTab: React.FC = () => {
   const {
+    selectedCompany,
     investmentAnalysis,
     isLoadingAnalysis,
     analysisError,
     analysisLoadingMessage,
     runDomainAnalysis,
+    fetchRecommendation,
   } = useUIStore();
 
   return (
@@ -64,9 +66,43 @@ export const ValuationTab: React.FC = () => {
       ) : investmentAnalysis ? (
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.5fr', gap: '20px' }}>
           <div>
-            <h3 style={{ fontSize: '0.95rem', color: '#10b981', textTransform: 'uppercase', marginBottom: '10px' }}>
-              DCF Model Assumptions
-            </h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <h3 style={{ fontSize: '0.95rem', color: '#10b981', textTransform: 'uppercase', margin: 0 }}>
+                DCF Model Assumptions
+              </h3>
+              <button
+                id="refresh-dcf-valuation-btn"
+                title="Recalculate DCF valuation model"
+                onClick={() => {
+                  runDomainAnalysis('investment', undefined, true);
+                  if (selectedCompany) fetchRecommendation(selectedCompany.id);
+                }}
+                disabled={isLoadingAnalysis}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#6b7280',
+                  cursor: isLoadingAnalysis ? 'not-allowed' : 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '0.78rem',
+                  fontWeight: 500,
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoadingAnalysis) (e.currentTarget as HTMLButtonElement).style.color = '#10b981';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isLoadingAnalysis) (e.currentTarget as HTMLButtonElement).style.color = '#6b7280';
+                }}
+              >
+                <RefreshCw size={13} style={{ animation: isLoadingAnalysis ? 'spin 1s linear infinite' : 'none' }} />
+                <span>Recalculate DCF</span>
+              </button>
+            </div>
             {investmentAnalysis.valuation_summary.valuation_flags && investmentAnalysis.valuation_summary.valuation_flags.length > 0 && (
               <div style={{
                 backgroundColor: 'rgba(239, 68, 68, 0.08)',

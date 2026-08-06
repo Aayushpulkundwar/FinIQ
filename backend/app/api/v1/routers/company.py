@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.schemas.company import Company, CompanyCreate, CompanyUpdate
+from app.schemas.news import CompanyNewsResponse
 from app.schemas.yahoo_finance import FinancialSummaryResponse, RecommendationResponse
 from app.services.company import CompanyService
 from app.services.market_data import get_market_data, get_yfinance_dcf_inputs
@@ -454,13 +455,55 @@ async def get_company_financial_summary(
     from app.models.financial import FinancialPeriod, FinancialStatement, FinancialMetric, PeriodType
     from app.models.document import Document, ProcessingStatus
 
+    from app.core.cache import cache
+    summary_cache_key = f"financial_summary:overview:{id}"
+    cached_summary = await cache.get(summary_cache_key)
+    if cached_summary is not None:
+        logger.debug(f"financial-summary cache HIT: {summary_cache_key}")
+        return FinancialSummaryResponse(**cached_summary)
+
     service = CompanyService(db)
     try:
         company = await service.get_company(id)
     except KeyError as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
-    # 1. Query the database for parsed annual financials for this company
+    # Fetch ratio metrics directly via dedicated financial_ratios_scraper (cached 12h)
+    from app.services.financial_ratios_scraper import fetch_financial_ratios, FinancialRatios
+    from app.core.cache import cache
+
+    ratios = None
+    cache_key = f"ratios:{id}"
+    cached_ratios = await cache.get(cache_key)
+    if cached_ratios is not None:
+        try:
+            ratios = FinancialRatios(**cached_ratios)
+        except Exception:
+            ratios = None
+
+    if ratios is None and company.ticker_symbol:
+        ratios = await fetch_financial_ratios(company.ticker_symbol, company.exchange or "")
+        if ratios and ratios.available:
+            await cache.set(cache_key, ratios.model_dump(), ttl=43200)
+
+    scraped_roe = ratios.roe_percent if ratios and ratios.available else None
+
+    # ── PRIMARY PATH: Try yfinance summary FIRST ───────────────────────────
+    if company.ticker_symbol:
+        try:
+            data = await get_financial_summary(company.ticker_symbol, company.exchange or "")
+            if data and data.get("available"):
+                if scraped_roe is not None:
+                    data["roe"] = scraped_roe
+                    data["roe_source"] = "ratio_scraper"
+                resp_obj = FinancialSummaryResponse(**data)
+                await cache.set(summary_cache_key, resp_obj.model_dump(), ttl=1800)
+                logger.info(f"get_company_financial_summary: Served live yfinance summary for {company.ticker_symbol}")
+                return resp_obj
+        except Exception as yf_err:
+            logger.warning(f"get_company_financial_summary: yfinance fetch failed for {company.ticker_symbol}: {yf_err}. Falling back to DB/PDF.")
+
+    # ── FALLBACK PATH: DB / PDF Filing summary when yfinance fails ─────────
     stmt = (
         select(FinancialPeriod, FinancialStatement, FinancialMetric)
         .join(FinancialStatement, FinancialStatement.period_id == FinancialPeriod.id)
@@ -478,68 +521,47 @@ async def get_company_financial_summary(
     if row:
         period, statement, metric = row
         if statement.revenue is not None or statement.net_profit is not None:
-            # Check if there is any completed document to confirm it is from a document RAG run
-            doc_stmt = select(Document).where(
-                Document.company_id == id,
-                Document.processing_status == ProcessingStatus.completed
-            ).limit(1)
-            doc_res = await db.execute(doc_stmt)
-            has_doc = doc_res.scalars().first() is not None
-            
-            source = "annual_report" if has_doc else "yahoo_direct"
+            if not period.currency or str(period.currency).strip().upper() in ["", "UNKNOWN", "NULL", "NONE"]:
+                logger.warning(
+                    f"FinancialPeriod {period.id} for company {company.ticker_symbol} has missing or unverified currency. "
+                    "Rejecting database summary to prevent displaying mislabeled currency values."
+                )
+                return FinancialSummaryResponse(
+                    ticker=_resolve_ticker(company.ticker_symbol, company.exchange or ""),
+                    available=False,
+                    reason="currency_unverified",
+                )
 
-            return FinancialSummaryResponse(
+            fallback_source = "uploaded_filings_yfinance_unavailable"
+            final_roe = scraped_roe if scraped_roe is not None else (float(metric.roe) if metric and metric.roe is not None else None)
+            final_roe_source = "ratio_scraper" if scraped_roe is not None else fallback_source
+
+            resp_obj = FinancialSummaryResponse(
                 ticker=_resolve_ticker(company.ticker_symbol, company.exchange or ""),
                 available=True,
                 fiscal_year=f"FY{period.fiscal_year}",
                 currency=period.currency,
                 revenue=float(statement.revenue) if statement.revenue is not None else None,
-                revenue_source=source,
+                revenue_source=fallback_source,
                 ebitda=float(statement.ebitda) if statement.ebitda is not None else None,
-                ebitda_source=source,
+                ebitda_source=fallback_source,
                 net_profit=float(statement.net_profit) if statement.net_profit is not None else None,
-                net_profit_source=source,
-                roe=float(metric.roe) if metric and metric.roe is not None else None,
-                roe_source=source,
+                net_profit_source=fallback_source,
+                roe=final_roe,
+                roe_source=final_roe_source,
             )
+            await cache.set(summary_cache_key, resp_obj.model_dump(), ttl=1800)
+            return resp_obj
 
-    # 2. If no DB record is found, but the company has documents, let's run FinancialIntelligenceService analyze on-the-fly!
-    doc_stmt = select(Document).where(
-        Document.company_id == id,
-        Document.processing_status == ProcessingStatus.completed
-    ).limit(1)
-    doc_res = await db.execute(doc_stmt)
-    has_doc = doc_res.scalars().first() is not None
-
-    if has_doc:
-        from app.services.financial_intelligence.service import FinancialIntelligenceService
-        fi_service = FinancialIntelligenceService(db)
-        try:
-            logger.info(f"Running on-the-fly financial analysis pipeline for company_id {id}")
-            analysis = await fi_service.analyze(company_id=id)
-            if analysis.latest_statement.revenue is not None or analysis.latest_statement.net_profit is not None:
-                return FinancialSummaryResponse(
-                    ticker=_resolve_ticker(company.ticker_symbol, company.exchange or ""),
-                    available=True,
-                    fiscal_year=f"FY{analysis.fiscal_year}",
-                    currency=analysis.currency,
-                    revenue=analysis.latest_statement.revenue,
-                    revenue_source="annual_report",
-                    ebitda=analysis.latest_statement.ebitda,
-                    ebitda_source="annual_report",
-                    net_profit=analysis.latest_statement.net_profit,
-                    net_profit_source="annual_report",
-                    roe=analysis.calculated_metrics.roe,
-                    roe_source="annual_report",
-                )
-            else:
-                logger.info(f"On-the-fly RAG financial analyze returned empty financials for {company.ticker_symbol}. Falling back to yfinance.")
-        except Exception as e:
-            logger.warning(f"On-the-fly RAG financial analyze failed for {company.ticker_symbol}: {e}. Falling back to yfinance.")
-
-    # 3. Fallback to yfinance summary
+    # 3. Final Fallback if yfinance failed and no DB statement exists
     data = await get_financial_summary(company.ticker_symbol, company.exchange or "")
-    return FinancialSummaryResponse(**data)
+    if scraped_roe is not None and data.get("available"):
+        data["roe"] = scraped_roe
+        data["roe_source"] = "ratio_scraper"
+    resp_obj = FinancialSummaryResponse(**data)
+    if resp_obj.available:
+        await cache.set(summary_cache_key, resp_obj.model_dump(), ttl=1800)
+    return resp_obj
 
 
 @router.get("/{id}/recommendation", response_model=RecommendationResponse)
@@ -914,18 +936,13 @@ def _fetch_detailed_financials_sync(yf_ticker: str) -> Dict[str, Any]:
     annual_periods = extract_periods(inc, is_annual=True)
     quarterly_periods = extract_periods(q_inc, is_annual=False)
 
-    roe = clean_val(info.get("returnOnEquity"))
-    roa = clean_val(info.get("returnOnAssets"))
-    gross_margin = clean_val(info.get("grossMargins"))
-    operating_margin = clean_val(info.get("operatingMargins"))
-    profit_margin = clean_val(info.get("profitMargins"))
+    from app.services.financial_ratios_scraper import _to_percent
+    roe_pct = _to_percent(info.get("returnOnEquity"))
+    roa_pct = _to_percent(info.get("returnOnAssets"))
+    gross_margin_pct = _to_percent(info.get("grossMargins"))
+    operating_margin_pct = _to_percent(info.get("operatingMargins"))
+    net_margin_pct = _to_percent(info.get("profitMargins"))
     debt_to_equity = clean_val(info.get("debtToEquity"))
-
-    roe_pct = roe * 100.0 if roe is not None else None
-    roa_pct = roa * 100.0 if roa is not None else None
-    gross_margin_pct = gross_margin * 100.0 if gross_margin is not None else None
-    operating_margin_pct = operating_margin * 100.0 if operating_margin is not None else None
-    net_margin_pct = profit_margin * 100.0 if profit_margin is not None else None
 
     if debt_to_equity is None and bal is not None and not bal.empty:
         tot_debt_row = _get_row(bal, "total debt", "total debt and capital lease obligation", "totaldebt")
@@ -1010,4 +1027,52 @@ async def get_company_detailed_financials(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={"error": "financial_data_unavailable", "ticker": ticker, "reason": err_msg}
         )
+
+
+@router.get("/{company_id}/news", response_model=CompanyNewsResponse)
+async def get_company_news_endpoint(
+    company_id: UUID,
+    limit: int = 20,
+    db: AsyncSession = Depends(get_db)
+) -> CompanyNewsResponse:
+    """
+    Fetch real-time company news via harmonized APITube / RSS feeds, cached in Redis.
+    """
+    from app.services.company import CompanyService
+    from app.services.unified_news import fetch_harmonized_company_news
+    from app.schemas.news import CompanyNewsResponse
+    from app.core.cache import cache
+
+    company_service = CompanyService(db)
+    company = await company_service.get_company(company_id)
+    if not company:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Company with ID {company_id} not found."
+        )
+
+    cache_key = f"news:{company_id}"
+    cached = await cache.get(cache_key)
+    if cached is not None:
+        logger.info(f"CompanyNews: CACHE HIT for company_id={company_id}")
+        return CompanyNewsResponse(**cached)
+
+    articles = await fetch_harmonized_company_news(
+        company_name=company.company_name,
+        ticker=company.ticker_symbol,
+        limit=limit,
+    )
+
+    response_data = CompanyNewsResponse(
+        company_id=company.id,
+        company_name=company.company_name,
+        ticker_symbol=company.ticker_symbol,
+        articles=articles,
+    )
+
+    # Use 900s (15 min) for non-empty results, or 60s TTL for empty results to allow fast retry on transient failures
+    ttl = 900 if len(articles) > 0 else 60
+    await cache.set(cache_key, response_data.model_dump(), ttl=ttl)
+    return response_data
+
 

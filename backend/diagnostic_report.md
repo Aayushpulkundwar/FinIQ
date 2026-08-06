@@ -1,8 +1,8 @@
 # RAG Pipeline Diagnostic & Verification Report
 
 **Status**: FAIL
-**LLM Provider**: gemini
-**LLM Model**: gemini-2.5-flash
+**LLM Provider**: openrouter
+**LLM Model**: openrouter/free
 **Mock Mode (ALLOW_MOCK_LLM)**: False
 
 ## 1. Database Ingest & In-Memory Records

@@ -25,6 +25,7 @@ async def upload_document(
     document_type: DocumentType = Form(...),
     fiscal_year: int = Form(...),
     quarter: Optional[int] = Form(None),
+    allow_supersede: bool = Form(False),
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db),
 ) -> Document:
@@ -41,6 +42,7 @@ async def upload_document(
             fiscal_year=fiscal_year,
             quarter=quarter,
             file=file,
+            allow_supersede=allow_supersede,
         )
     except ValueError as e:
         raise HTTPException(
@@ -62,6 +64,53 @@ async def list_documents(
     """
     service = DocumentService(db)
     return await service.list_documents(skip=skip, limit=limit)
+
+
+@router.get("/stalled", response_model=List[Document])
+async def get_stalled_documents(
+    threshold_minutes: int = 15, db: AsyncSession = Depends(get_db)
+) -> List[Document]:
+    """
+    Returns document entries stuck in 'processing' status past the specified threshold.
+    Uses dedicated heartbeat_at column.
+    """
+    from datetime import datetime, timedelta
+    from sqlalchemy import select
+    from app.models.document import Document as DocModel, ProcessingStatus
+
+    cutoff = datetime.utcnow() - timedelta(minutes=threshold_minutes)
+    stmt = select(DocModel).where(
+        DocModel.processing_status == ProcessingStatus.processing,
+        DocModel.heartbeat_at <= cutoff
+    )
+    res = await db.execute(stmt)
+    return res.scalars().all()
+
+
+@router.get("/stalled/count")
+async def count_stalled_documents(
+    threshold_minutes: int = 15, db: AsyncSession = Depends(get_db)
+) -> dict:
+    """
+    Lightweight diagnostic summary endpoint returning stuck document count for polling/monitoring.
+    """
+    from datetime import datetime, timedelta
+    from sqlalchemy import select, func
+    from app.models.document import Document as DocModel, ProcessingStatus
+
+    cutoff = datetime.utcnow() - timedelta(minutes=threshold_minutes)
+    stmt = select(func.count(DocModel.id)).where(
+        DocModel.processing_status == ProcessingStatus.processing,
+        DocModel.heartbeat_at <= cutoff
+    )
+    res = await db.execute(stmt)
+    stuck_count = res.scalar() or 0
+
+    return {
+        "stalled_count": stuck_count,
+        "threshold_minutes": threshold_minutes,
+        "checked_at": datetime.utcnow().isoformat()
+    }
 
 
 @router.get("/{id}", response_model=Document)

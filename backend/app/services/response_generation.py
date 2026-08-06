@@ -38,10 +38,9 @@ def get_llm_model(provider: str):
 
 
 # Character budget for the OpenRouter context window.
-# Large-context models (128K+ tokens) can handle far more than phi3's 4K,
-# but we cap input to a sensible limit to avoid runaway costs and latency.
-# ~128K tokens @ ~4 chars/token = ~512K chars; we use 100K chars as a safe cap.
-_OPENROUTER_CONTEXT_CHAR_LIMIT = 100_000
+# Capped to 30,000 characters (~7,500 tokens) for rich, detailed context while
+# keeping execution fast (<10s) and avoiding OpenRouter rate limits / timeouts.
+_OPENROUTER_CONTEXT_CHAR_LIMIT = 30_000
 
 
 def _build_openrouter_prompt(
@@ -52,42 +51,38 @@ def _build_openrouter_prompt(
 ) -> List[Dict[str, str]]:
     """
     Builds an OpenAI-compatible /chat/completions message list for OpenRouter.
-
-    Enforces a generous character budget on search_matches so the total prompt
-    stays within large-context model limits.
+    Enforces a generous 30,000 character budget on search_matches for in-depth analysis.
     """
     from app.core.cache import json_serial
     company_name = company_details.get("company_name", "the company") if company_details else "the company"
     ticker = company_details.get("ticker_symbol", "") if company_details else ""
     company_label = f"{company_name} ({ticker})" if ticker else company_name
 
-    # Truncate chunk context to fit within the context budget.
-    overhead = len(user_query) + len(company_label) + 900  # 900 = system msg + labels + schema
-    available = max(_OPENROUTER_CONTEXT_CHAR_LIMIT - overhead, 10_000)  # guarantee at least 10K chars
+    overhead = len(user_query) + len(company_label) + 900
+    available = max(_OPENROUTER_CONTEXT_CHAR_LIMIT - overhead, 10_000)
     if len(search_matches) > available:
-        logger.warning(
+        logger.info(
             f"ResponseGenerationService: Truncating OpenRouter context from "
             f"{len(search_matches)} to {available} chars."
         )
         search_matches = search_matches[:available] + "\n\n[...truncated]"
 
     system_msg = (
-        "You are a financial analyst assistant. "
-        "Read the retrieved context below and answer the query. "
+        "You are an institutional investment research analyst. "
+        "Analyze the retrieved context below and answer the query with an in-depth, grounded institutional analysis. "
         "Return ONLY a valid JSON object — no markdown fences, no prose outside the JSON. "
-        "The JSON must have EXACTLY these four keys:\n"
-        '  "executive_summary": a 2-4 sentence paragraph summarizing the answer IN YOUR OWN WORDS.\n'
-        '  "key_insights": a JSON array of 3-5 SHORT bullet strings (each ≤15 words), '
-        "each highlighting a DIFFERENT finding — do NOT repeat the executive_summary.\n"
-        '  "supporting_evidence": a JSON array of 2-4 strings where each string is a '
-        "verbatim excerpt OR paraphrase from the context WITH a source citation, e.g. "
-        '"Revenue grew 12% YoY (Arvind Annual Report 2024, Page 45)". '
-        "These must be DIFFERENT from key_insights.\n"
-        '  "risks_limitations": a JSON array of 1-3 strings describing risks, caveats, '
-        "or data gaps — different from every other section.\n"
-        "CRITICAL RULES: (1) Every section must contain DIFFERENT information. "
-        "(2) Do NOT copy the same sentence into multiple sections. "
-        "(3) Do NOT copy sentences verbatim into executive_summary — synthesize them."
+        "The JSON must contain EXACTLY these four keys:\n"
+        '  "executive_summary": A detailed 4-6 sentence institutional executive summary covering: '
+        '(1) Core findings & performance highlights, (2) Specific financial metrics and magnitude, '
+        '(3) Primary operational or market drivers, and (4) Outlook parameters or key risk notes.\n'
+        '  "key_insights": A JSON array of 3-5 SHORT bullet strings (each ≤15 words), '
+        "each highlighting a DIFFERENT key finding — do NOT repeat the executive_summary.\n"
+        '  "supporting_evidence": A JSON array of 3-5 verbatim excerpts or paraphrases WITH source citations. '
+        'For PDF annual report documents, use: "(Document Title, Page XX)". '
+        'For live web news articles, use: "(Source: [Publisher], Published: [Date], URL: [URL])".\n'
+        '  "risks_limitations": A JSON array of 1-3 distinct risk factors or caveats.\n\n'
+        "CRITICAL RULES: (1) Ground every statement in the retrieved context — do NOT fabricate numbers or facts. "
+        "(2) Write a substantive, analytical executive_summary (4-6 sentences) with exact numbers and drivers."
     )
     user_msg = (
         f"Company: {company_label}\n"
@@ -98,6 +93,113 @@ def _build_openrouter_prompt(
         {"role": "system", "content": system_msg},
         {"role": "user", "content": user_msg},
     ]
+
+
+def _build_news_openrouter_prompt(
+    user_query: str,
+    company_details: Optional[Dict[str, Any]],
+    search_matches: str,
+    document_metadata: List[Dict[str, Any]],
+) -> List[Dict[str, str]]:
+    """
+    Builds a structured OpenAI-compatible prompt tailored specifically for live news queries.
+    Instructs the LLM to summarize each relevant news article per-hit in key_insights,
+    substituting the exact Publisher field given in the context.
+    """
+    company_name = company_details.get("company_name", "the company") if company_details else "the company"
+    ticker = company_details.get("ticker_symbol", "") if company_details else ""
+    company_label = f"{company_name} ({ticker})" if ticker else company_name
+
+    system_msg = (
+        f"You are an institutional corporate news analyst reviewing live web news for {company_label}.\n"
+        "Analyze each retrieved news article in the context below and output a structured per-article summary breakdown.\n\n"
+        "Return ONLY a valid JSON object — no markdown fences, no prose outside JSON. The JSON must contain EXACTLY four keys:\n"
+        f'  "executive_summary": A concise 1-2 sentence high-level overview synthesizing the main corporate news events for {company_name}.\n'
+        '  "key_insights": A JSON array of strings, where EACH string is a bullet point summarizing ONE specific news article. '
+        'Format each bullet string as: "[Publisher] 1-2 sentence summary of this article", substituting the EXACT string from the Publisher field of that article (e.g. "[scanx.trade] Shareholders approved equity raise..." or "[TelecomTalk] Airtel launched...").\n'
+        '  "supporting_evidence": A JSON array of strings citing each article\'s title, publisher, date, and URL.\n'
+        '  "risks_limitations": A JSON array of 1-2 strings describing corporate risks or limitations mentioned in the articles.\n\n'
+        "MANDATORY INSTRUCTIONS:\n"
+        "1. In every key_insights bullet, replace [Publisher] with the real publisher name from the context (e.g. [scanx.trade], [TelecomTalk], [CNBC TV18]). NEVER output literal text '[Publisher Name]' or '[Publisher]'.\n"
+        "2. Make sure executive_summary is a clear, non-empty 1-2 sentence overview of the news."
+    )
+
+    user_msg = (
+        f"Company: {company_label}\n"
+        f"Query: {user_query}\n\n"
+        f"Retrieved Live News Articles:\n{search_matches}"
+    )
+
+    return [
+        {"role": "system", "content": system_msg},
+        {"role": "user", "content": user_msg},
+    ]
+
+
+_STRONG_CORPORATE_KEYWORDS = {
+    "ltd", "limited", "corp", "corporation", "inc", "pvt", "private",
+    "shares", "share", "stock", "stocks", "quarter", "q1", "q2", "q3", "q4",
+    "fy24", "fy25", "fy26", "fy2024", "fy2025", "fy2026", "dividend", "revenue",
+    "ebitda", "profit", "loss", "results", "earnings", "equity", "arpu", "telecom",
+    "textile", "logistics", "supply chain", "nse", "bse", "sebi", "trai", "dot",
+    "shareholder", "shareholders", "investor", "investors", "board",
+    "ipo", "stake", "acquisition", "recharge", "5g"
+}
+
+
+def is_relevant_corporate_article(
+    title: str,
+    text: str,
+    company_name: str,
+    ticker_symbol: Optional[str] = None,
+    sector: Optional[str] = None,
+    industry: Optional[str] = None,
+) -> bool:
+    """
+    Fully generic corporate news relevance validator.
+    Ensures candidate news snippets are genuinely about the target corporate entity
+    and excludes name collisions (such as politicians or executives of other companies sharing a name).
+    """
+    if not company_name:
+        return True
+
+    from app.services.rss_news import _clean_company_name
+    import re
+
+    full_text = f"{title} {text}".lower()
+    comp_full = company_name.lower()
+    clean_short = _clean_company_name(company_name).lower()
+    ticker_clean = (ticker_symbol or "").split(".")[0].strip().lower()
+
+    is_ambiguous_short_name = len(clean_short.split()) == 1 or len(clean_short) <= 7
+
+    # Rule 1: Full registered company name or explicit corporate suffix form present
+    if comp_full in full_text or f"{clean_short} ltd" in full_text or f"{clean_short} limited" in full_text:
+        return True
+
+    # Rule 2: Ticker symbol match (for tickers distinct from short name)
+    if ticker_clean and ticker_clean != clean_short and len(ticker_clean) >= 4:
+        if re.search(r"\b" + re.escape(ticker_clean) + r"\b", full_text):
+            return True
+
+    # Rule 3: Short name match MUST be accompanied by corporate/stock keywords or sector/industry
+    if clean_short in full_text:
+        if not is_ambiguous_short_name:
+            return True
+
+        has_corp_kw = any(
+            re.search(r"\b" + re.escape(kw) + r"\b", full_text)
+            for kw in _STRONG_CORPORATE_KEYWORDS
+        )
+        if has_corp_kw:
+            return True
+
+        if sector and sector.lower() in full_text:
+            return True
+        if industry and industry.lower() in full_text:
+            return True
+
+    return False
 
 
 def _validate_response_grounding(
@@ -135,7 +237,7 @@ def _validate_response_grounding(
         ticker_base = "".join(c for c in ticker if c.isalpha()).lower()
         if len(ticker_base) >= 3 and ticker_base in text_corpus_lower:
             matched = True
-        if name_keywords and all(kw in text_corpus_lower for kw in name_keywords):
+        if name_keywords and any(kw in text_corpus_lower for kw in name_keywords):
             matched = True
         if name.lower() in text_corpus_lower:
             matched = True
@@ -340,8 +442,8 @@ class ResponseGenerationService:
         input_str = f"{user_query}|{json.dumps(company_details, default=json_serial)}|{json.dumps(document_metadata, default=json_serial)}|{json.dumps(retrieved_chunks, default=json_serial)}"
         query_hash = cache.hash_key(input_str)
         
-        # Version cache key to avoid reuse of OpenAI or placeholder cache data
-        cache_key = f"ai_response:v4:{settings.LLM_PROVIDER}:{settings.OPENROUTER_MODEL}:{query_hash}"
+        # Version cache key to avoid reuse of stale placeholder/cache data
+        cache_key = f"ai_response:v5:{settings.LLM_PROVIDER}:{settings.OPENROUTER_MODEL}:{query_hash}"
 
         cached = await cache.get(cache_key)
         if cached is not None:
@@ -351,60 +453,309 @@ class ResponseGenerationService:
         logger.info("ResponseGenerationService: CACHE MISS.")
 
         # Check path selection
+        if not retrieved_chunks and not db:
+            logger.info("ResponseGenerationService: Running fallback generator path.")
+            return await self._generate_fallback(user_query, company_details, retrieved_chunks, cache_key)
+
+        # Inject authoritative database financial statement ground truth for financial queries
+        if db and company_details and (company_details.get("id") or company_details.get("company_id")):
+            try:
+                c_uuid = uuid.UUID(company_details.get("id") or company_details.get("company_id"))
+                from sqlalchemy import select
+                from app.models.financial import FinancialStatement, FinancialPeriod
+
+                stmt = (
+                    select(FinancialStatement, FinancialPeriod)
+                    .join(FinancialPeriod, FinancialStatement.period_id == FinancialPeriod.id)
+                    .where(FinancialStatement.company_id == c_uuid)
+                    .order_by(FinancialPeriod.fiscal_year.desc())
+                    .limit(1)
+                )
+                db_res = await db.execute(stmt)
+                db_row = db_res.first()
+                if db_row:
+                    fs_item, fp_item = db_row
+                    comp_name = company_details.get("company_name", "Company")
+                    fy_val = f"20{fp_item.fiscal_year}" if fp_item.fiscal_year < 100 else fp_item.fiscal_year
+                    rev_val = f"₹{fs_item.revenue:,.0f} Cr" if fs_item.revenue is not None else "N/A"
+                    ebitda_val = f"₹{fs_item.ebitda:,.0f} Cr" if fs_item.ebitda is not None else "N/A"
+                    np_val = f"₹{fs_item.net_profit:,.0f} Cr" if fs_item.net_profit is not None else "N/A"
+
+                    gt_chunk = {
+                        "document_title": f"Authoritative Database Financial Statement ({comp_name}, FY{fy_val})",
+                        "chunk_text": (
+                            f"Authoritative Database Financial Ground Truth for {comp_name} (FY{fy_val}):\n"
+                            f"Revenue: {rev_val}\n"
+                            f"EBITDA: {ebitda_val}\n"
+                            f"Net Profit: {np_val}\n"
+                            f"Currency: {fp_item.currency or 'INR'}"
+                        ),
+                        "page_number": None,
+                        "url": None,
+                        "published_at": None,
+                        "is_db_ground_truth": True,
+                    }
+                    if retrieved_chunks is None:
+                        retrieved_chunks = []
+                    # Check if DB ground truth chunk is already prepended
+                    if not any(ch.get("is_db_ground_truth") for ch in retrieved_chunks):
+                        retrieved_chunks.insert(0, gt_chunk)
+            except Exception as db_gt_err:
+                logger.warning(f"ResponseGenerationService: Could not inject DB financial ground truth: {db_gt_err}")
+
         if not retrieved_chunks or settings.ALLOW_MOCK_LLM:
             logger.info("ResponseGenerationService: Running fallback generator path.")
             return await self._generate_fallback(user_query, company_details, retrieved_chunks, cache_key)
 
-        logger.info("ResponseGenerationService: Running production LLM path (OpenRouter-only).")
+        # ── Intent classification: news vs. document query ──────────────────
+        # Uses fuzzy token matching (edit-distance ≤1 + stemming) so typos like
+        # "newz", "recen news", "lates updates" still classify correctly.
+        # No hardcoded patch list — the tolerance is structural.
+        q_lower = (user_query or "").lower().strip()
+
+        def _levenshtein(a: str, b: str) -> int:
+            """Fast edit-distance for short strings only (cap at len+1)."""
+            if abs(len(a) - len(b)) > 2:
+                return 99
+            dp = list(range(len(b) + 1))
+            for i, ca in enumerate(a):
+                ndp = [i + 1] + [0] * len(b)
+                for j, cb in enumerate(b):
+                    ndp[j + 1] = min(
+                        dp[j + 1] + 1,        # deletion
+                        ndp[j] + 1,            # insertion
+                        dp[j] + (0 if ca == cb else 1),  # substitution
+                    )
+                dp = ndp
+            return dp[-1]
+
+        def _stem(w: str) -> str:
+            """Minimal suffix stripping for intent tokens."""
+            for suffix in ("ings", "ing", "ment", "ments", "tion", "ed", "s"):
+                if w.endswith(suffix) and len(w) - len(suffix) >= 3:
+                    return w[: -len(suffix)]
+            return w
+
+        # Canonical news-intent roots — these are conceptual roots, not surface forms.
+        # Fuzzy matching + stemming generalises from here without patches.
+        _NEWS_ROOTS = {
+            "news", "newz",                          # allow common phonetic variant
+            "headline", "headlin",
+            "update", "updat",
+            "develop",                               # 'development/s' stems to this
+            "happen",                                # 'happening/s'
+            "event",                                 # 'events'
+            "announc",                               # 'announcement/s'
+            "report",
+            "latest",
+            "recent",
+            "current",
+            "today",
+            "break",                                 # 'breaking'
+            "press",
+            "release",
+            "buzz",
+            "catch",                                 # 'catch me up'
+        }
+        # Exact multi-word phrases that cannot be detected token-by-token
+        _NEWS_PHRASES = [
+            "catch me up", "what is happening", "whats happening",
+            "what's happening", "press release", "market update",
+        ]
+
+        def _is_news_intent(query: str) -> bool:
+            # 1. Phrase match first (exact substring)
+            for phrase in _NEWS_PHRASES:
+                if phrase in query:
+                    return True
+            # 2. Token-level fuzzy match against roots
+            tokens = query.split()
+            for token in tokens:
+                token_clean = token.strip("?!.,;:").lower()
+                stemmed = _stem(token_clean)
+                for root in _NEWS_ROOTS:
+                    # exact stem match
+                    if stemmed == root or token_clean == root:
+                        return True
+                    # edit-distance ≤1 on tokens of length ≥4 (avoids false positives on short words)
+                    if len(token_clean) >= 4 and _levenshtein(token_clean, root) <= 1:
+                        return True
+            return False
+
+        is_news_query = _is_news_intent(q_lower)
+        logger.info(f"ResponseGenerationService: intent classification — query='{user_query[:60]}' is_news={is_news_query}")
+
+        # ── Determine actual evidence source type from chunk metadata ─────────
+        # This is set ONCE from the real data, then attached to every AIResponse
+        # returned from this function so the frontend never has to guess.
+        def _compute_evidence_source_type(chunks: list) -> str:
+            if not chunks:
+                return "none"
+            has_live = any(ch.get("url") for ch in chunks)
+            has_doc = any(
+                not ch.get("url") and ch.get("page_number") is not None
+                for ch in chunks
+            )
+            if has_live and has_doc:
+                return "mixed"
+            if has_live:
+                return "live_news"
+            if has_doc:
+                return "rag_documents"
+            # chunks exist but neither url nor page_number (e.g. DB ground-truth chunk)
+            return "rag_documents"
+
+        evidence_source_type = _compute_evidence_source_type(retrieved_chunks)
+
+        if is_news_query and retrieved_chunks:
+            live_news_chunks = [
+                ch for ch in retrieved_chunks
+                if ch.get("url") or any(k in (ch.get("document_title") or "").lower() for k in ["news", "rss", "apitube", "times", "reuters", "bloomberg", "herald", "post", "journal", "pioneer", "express", "mint", "live"])
+            ]
+
+            comp_name = company_details.get("company_name", "") if company_details else ""
+            ticker_sym = company_details.get("ticker_symbol", "") if company_details else ""
+            sector_val = company_details.get("sector", "") if company_details else ""
+            industry_val = company_details.get("industry", "") if company_details else ""
+
+            filtered_corporate_news = [
+                ch for ch in live_news_chunks
+                if is_relevant_corporate_article(
+                    title=ch.get("document_title") or "",
+                    text=ch.get("chunk_text") or "",
+                    company_name=comp_name,
+                    ticker_symbol=ticker_sym,
+                    sector=sector_val,
+                    industry=industry_val,
+                )
+            ]
+
+            retrieved_chunks = filtered_corporate_news
+            # Re-derive after filtering (may have dropped doc chunks)
+            evidence_source_type = _compute_evidence_source_type(retrieved_chunks)
+
+            if not retrieved_chunks:
+                logger.info(f"ResponseGenerationService: Zero corporate news articles remain for '{comp_name}' after political name collision filtering.")
+                comp_label = f"{comp_name} ({ticker_sym})" if ticker_sym else comp_name
+                no_news_res = AIResponse(
+                    executive_summary=f"No recent news specific to {comp_label} was found among the live sources checked.",
+                    key_insights=[],
+                    supporting_evidence=[],
+                    risks_limitations=[f"Live web news feeds returned zero corporate articles specific to {comp_label}."],
+                    sources=[],
+                    confidence_score=0.0,
+                    provider=f"openrouter/{settings.OPENROUTER_MODEL}",
+                    generation_mode="news_specific_zero_hits",
+                    is_degraded=False,
+                    evidence_source_type="live_news",
+                )
+                await cache.set(cache_key, no_news_res.model_dump(), ttl=43200)
+                return no_news_res
 
         # Formulate search chunks text summary for prompt grounding
         search_matches = ""
         for idx, chunk in enumerate(retrieved_chunks):
             title = chunk.get("document_title") or "Unnamed Document"
-            page = chunk.get("page_number") or 1
+            page_num = chunk.get("page_number")
+            page_str = f", Page {page_num}" if page_num is not None else ""
+            pub_str = f" [Date: {str(chunk.get('published_at')).split('T')[0]}]" if chunk.get("published_at") else ""
+            url_str = chunk.get("url") or ""
             text = chunk.get("chunk_text") or ""
-            search_matches += f"Chunk {idx+1}:\nText: {text}\nSource: {title}, Page {page}\n\n"
 
-        openrouter_key = settings.OPENROUTER_API_KEY
-        if not openrouter_key or "placeholder" in (openrouter_key or "").lower():
-            logger.error("ResponseGenerationService: OPENROUTER_API_KEY is missing or placeholder.")
-            err_msg = "AI analysis is unavailable because the OpenRouter API key is not configured."
-            return AIResponse(
-                executive_summary="AI analysis is temporarily unavailable.",
-                key_insights=[],
-                supporting_evidence=[],
-                risks_limitations=[],
-                sources=[],
-                confidence_score=0.0,
-                provider="error",
-                generation_mode="fallback_error",
-                is_degraded=True,
-                error_message=err_msg,
+            publisher = "News Source"
+            if " — " in title:
+                publisher = title.split(" — ")[-1].strip()
+            elif " - " in title:
+                publisher = title.split(" - ")[-1].strip()
+            elif url_str:
+                from urllib.parse import urlparse
+                domain = urlparse(url_str).netloc.replace("www.", "")
+                if domain:
+                    publisher = domain
+
+            search_matches += (
+                f"Article #{idx+1}:\n"
+                f"Title: {title}\n"
+                f"Publisher: {publisher}\n"
+                f"Date: {str(chunk.get('published_at')).split('T')[0] if chunk.get('published_at') else 'N/A'}\n"
+                f"URL: {url_str}\n"
+                f"Text: {text}\n\n"
             )
 
-        logger.info(f"ResponseGenerationService: OpenRouter invocation started (model={settings.OPENROUTER_MODEL}).")
-        messages = _build_openrouter_prompt(
-            user_query, company_details, search_matches, document_metadata
-        )
+        if is_news_query:
+            messages = _build_news_openrouter_prompt(
+                user_query, company_details, search_matches, document_metadata
+            )
+        else:
+            messages = _build_openrouter_prompt(
+                user_query, company_details, search_matches, document_metadata
+            )
+        openrouter_key = settings.OPENROUTER_API_KEY
 
         try:
-            llm_result = await openrouter_chat(
-                messages=messages,
-                model=settings.OPENROUTER_MODEL,
-                api_key=openrouter_key,
-                base_url=settings.OPENROUTER_BASE_URL,
-                caller_label="ResponseGenerationService.generate_response",
-                allow_ollama_fallback=True,
-            )
-            raw_text = llm_result.content
-            _provider_used = llm_result.provider_used
+            if not openrouter_key or "placeholder" in (openrouter_key or "").lower():
+                if settings.OLLAMA_GENERATION_ENABLED:
+                    logger.warning(
+                        f"ResponseGenerationService: OPENROUTER_API_KEY is invalid/missing — "
+                        f"serving request via local Ollama fallback ({settings.OLLAMA_MODEL}). Fix OPENROUTER_API_KEY in backend/.env!"
+                    )
+                    from app.core.openrouter_client import _ollama_fallback_async
+                    raw_text = await _ollama_fallback_async(
+                        messages,
+                        ValueError("OPENROUTER_API_KEY invalid/missing"),
+                        "ResponseGenerationService.generate_response",
+                    )
+                    _provider_used = "ollama_fallback"
+                else:
+                    logger.error("ResponseGenerationService: OPENROUTER_API_KEY is missing or placeholder.")
+                    err_msg = "AI analysis is unavailable because the OpenRouter API key is not configured."
+                    return AIResponse(
+                        executive_summary="AI analysis is temporarily unavailable.",
+                        key_insights=[],
+                        supporting_evidence=[],
+                        risks_limitations=[],
+                        sources=[],
+                        confidence_score=0.0,
+                        provider="error",
+                        generation_mode="fallback_error",
+                        is_degraded=True,
+                        error_message=err_msg,
+                    )
+            else:
+                logger.info(f"ResponseGenerationService: OpenRouter invocation started (model={settings.OPENROUTER_MODEL}).")
+                llm_result = await openrouter_chat(
+                    messages=messages,
+                    model=settings.OPENROUTER_MODEL,
+                    api_key=openrouter_key,
+                    base_url=settings.OPENROUTER_BASE_URL,
+                    caller_label="ResponseGenerationService.generate_response",
+                    allow_ollama_fallback=True,
+                )
+                if isinstance(llm_result, str):
+                    raw_text = llm_result
+                    _provider_used = "openrouter"
+                else:
+                    raw_text = getattr(llm_result, "content", str(llm_result))
+                    _provider_used = getattr(llm_result, "provider_used", "openrouter")
             logger.info(
                 f"ResponseGenerationService: Response received from provider={_provider_used}. Parsing JSON..."
             )
 
             try:
                 parsed = clean_and_parse_json(raw_text)
-                exec_summary = parsed.get("executive_summary") or parsed.get("summary") or raw_text.strip()
+
+                raw_exec = parsed.get("executive_summary") or parsed.get("summary")
+                if raw_exec and isinstance(raw_exec, str) and raw_exec.strip() and not raw_exec.strip().startswith("{"):
+                    exec_summary = raw_exec.strip()
+                else:
+                    key_insights_list = parsed.get("key_insights") or []
+                    c_name = company_details.get("company_name", "the company") if company_details else "the company"
+                    if key_insights_list and isinstance(key_insights_list, list) and len(key_insights_list) > 0:
+                        first_bullet = str(key_insights_list[0])
+                        clean_first = re.sub(r"^\[.*?\]\s*", "", first_bullet).strip()
+                        exec_summary = f"Recent news for {c_name}: {clean_first}"
+                    else:
+                        exec_summary = f"Recent corporate news updates for {c_name}."
                 key_insights = parsed.get("key_insights") or []
                 supporting_evidence = parsed.get("supporting_evidence") or []
                 risks_limitations = parsed.get("risks_limitations") or []
@@ -434,9 +785,21 @@ class ResponseGenerationService:
                         messages=retry_messages,
                         model=settings.OPENROUTER_MODEL,
                         api_key=settings.OPENROUTER_API_KEY,
+                        allow_ollama_fallback=True,
                     )
                     parsed = clean_and_parse_json(retry_result.content)
-                    exec_summary = parsed.get("executive_summary") or parsed.get("summary") or retry_result.content.strip()
+                    raw_exec = parsed.get("executive_summary") or parsed.get("summary")
+                    if raw_exec and isinstance(raw_exec, str) and raw_exec.strip() and not raw_exec.strip().startswith("{"):
+                        exec_summary = raw_exec.strip()
+                    else:
+                        key_insights_list = parsed.get("key_insights") or []
+                        c_name = company_details.get("company_name", "the company") if company_details else "the company"
+                        if key_insights_list and isinstance(key_insights_list, list) and len(key_insights_list) > 0:
+                            first_bullet = str(key_insights_list[0])
+                            clean_first = re.sub(r"^\[.*?\]\s*", "", first_bullet).strip()
+                            exec_summary = f"Recent news for {c_name}: {clean_first}"
+                        else:
+                            exec_summary = f"Recent corporate news updates for {c_name}."
                     key_insights = parsed.get("key_insights") or []
                     supporting_evidence = parsed.get("supporting_evidence") or []
                     risks_limitations = parsed.get("risks_limitations") or []
@@ -470,17 +833,20 @@ class ResponseGenerationService:
                         risks_limitations=[],
                         sources=[],
                         confidence_score=0.0,
-                        provider=f"{_provider_used}/{settings.OPENROUTER_MODEL}",
+                        provider=f"ollama/{settings.OLLAMA_MODEL}" if "ollama" in _provider_used.lower() else f"{_provider_used}/{settings.OPENROUTER_MODEL}",
                         generation_mode="fallback_error",
                         is_degraded=True,
                         error_message=err_msg,
                         error_type=err_type,
+                        evidence_source_type=evidence_source_type,
                     )
 
             logger.info(
                 f"ResponseGenerationService: Response generated via provider={_provider_used} "
-                f"(model={settings.OPENROUTER_MODEL})"
+                f"(model={settings.OLLAMA_MODEL if 'ollama' in _provider_used.lower() else settings.OPENROUTER_MODEL})"
             )
+
+            provider_label = f"ollama/{settings.OLLAMA_MODEL}" if "ollama" in _provider_used.lower() else f"{_provider_used}/{settings.OPENROUTER_MODEL}"
 
             res = AIResponse(
                 executive_summary=exec_summary,
@@ -493,9 +859,10 @@ class ResponseGenerationService:
                 assumptions_used=assumptions_used,
                 missing_inputs_explanation=missing_inputs,
                 cited_sources_detailed=cited_sources,
-                provider=f"{_provider_used}/{settings.OPENROUTER_MODEL}",
+                provider=provider_label,
                 generation_mode="llm",
                 is_degraded=False,  # only clean successes reach this constructor
+                evidence_source_type=evidence_source_type,
             )
             if isinstance(res.key_insights, str):
                 res.key_insights = [res.key_insights]
@@ -515,7 +882,32 @@ class ResponseGenerationService:
         except Exception as openrouter_err:
             logger.error(f"ResponseGenerationService: OpenRouter/LLM generation failed: {openrouter_err}")
             
-            # Handle rate limiting specifically
+            # Fallback to query-aware snippet synthesis when both OpenRouter and Ollama fail/time out
+            if retrieved_chunks and company_details:
+                logger.info("ResponseGenerationService: Invoking _generate_fallback due to LLM provider exception.")
+                fallback_res = await self._generate_fallback(
+                    user_query=user_query,
+                    company_details=company_details,
+                    retrieved_chunks=retrieved_chunks,
+                    cache_key=cache_key,
+                    provider="basic_fallback"
+                )
+                fallback_res.generation_mode = "basic_fallback"
+                fallback_res.is_degraded = True
+                q_lower = user_query.lower()
+                if is_news_query:
+                    banner_label = "[Basic News Fallback Summary]"
+                elif any(kw in q_lower for kw in ["financial", "revenue", "profit", "ebitda", "balance sheet", "income", "margin", "statement", "fy24", "fy25", "fy26", "ratio"]):
+                    banner_label = "[Basic Financial Fallback Summary]"
+                else:
+                    banner_label = "[Basic Document Fallback Summary]"
+
+                if not any(fallback_res.executive_summary.startswith(b) for b in ["[Basic News Fallback Summary]", "[Basic Financial Fallback Summary]", "[Basic Document Fallback Summary]"]):
+                    fallback_res.executive_summary = f"{banner_label} {fallback_res.executive_summary}"
+                fallback_res.evidence_source_type = evidence_source_type
+                return fallback_res
+
+            # Handle rate limiting specifically when zero chunks exist
             err_str = str(openrouter_err).lower()
             if "429" in err_str or "rate limit" in err_str or "too many requests" in err_str:
                 err_msg = "AI analysis is temporarily rate-limited, please try again in a minute."
@@ -536,6 +928,7 @@ class ResponseGenerationService:
                 is_degraded=True,
                 error_message=err_msg,
                 error_type=err_type,
+                evidence_source_type=evidence_source_type,
             )
 
 
@@ -613,19 +1006,48 @@ class ResponseGenerationService:
         )
 
         openrouter_key = settings.OPENROUTER_API_KEY
-        logger.info(f"ResponseGenerationService: Comparison OpenRouter invocation (model={settings.OPENROUTER_MODEL}).")
-        
+
         try:
-            llm_result = await openrouter_chat(
-                messages=messages,
-                model=settings.OPENROUTER_MODEL,
-                api_key=openrouter_key,
-                base_url=settings.OPENROUTER_BASE_URL,
-                caller_label="ResponseGenerationService.generate_comparison_response",
-                allow_ollama_fallback=True,
-            )
-            raw_text = llm_result.content
-            _provider_used = llm_result.provider_used
+            if not openrouter_key or "placeholder" in (openrouter_key or "").lower():
+                if settings.OLLAMA_GENERATION_ENABLED:
+                    logger.warning(
+                        f"ResponseGenerationService: OPENROUTER_API_KEY is invalid/missing — "
+                        f"serving comparison request via local Ollama fallback ({settings.OLLAMA_MODEL}). Fix OPENROUTER_API_KEY in backend/.env!"
+                    )
+                    from app.core.openrouter_client import _ollama_fallback_async
+                    raw_text = await _ollama_fallback_async(
+                        messages,
+                        ValueError("OPENROUTER_API_KEY invalid/missing"),
+                        "ResponseGenerationService.generate_comparison_response",
+                    )
+                    _provider_used = "ollama_fallback"
+                else:
+                    logger.error("ResponseGenerationService: OPENROUTER_API_KEY is missing or placeholder.")
+                    err_msg = "AI comparison is unavailable because OpenRouter API key is not configured."
+                    return AIResponse(
+                        executive_summary="AI comparison analysis is temporarily unavailable.",
+                        key_insights=[],
+                        supporting_evidence=[],
+                        risks_limitations=[],
+                        sources=[],
+                        confidence_score=0.0,
+                        provider="error",
+                        generation_mode="fallback_error",
+                        is_degraded=True,
+                        error_message=err_msg,
+                    )
+            else:
+                logger.info(f"ResponseGenerationService: Comparison OpenRouter invocation (model={settings.OPENROUTER_MODEL}).")
+                llm_result = await openrouter_chat(
+                    messages=messages,
+                    model=settings.OPENROUTER_MODEL,
+                    api_key=openrouter_key,
+                    base_url=settings.OPENROUTER_BASE_URL,
+                    caller_label="ResponseGenerationService.generate_comparison_response",
+                    allow_ollama_fallback=True,
+                )
+                raw_text = llm_result.content
+                _provider_used = llm_result.provider_used
             logger.info(
                 f"ResponseGenerationService: Comparison response received from provider={_provider_used}. Parsing JSON..."
             )
@@ -685,7 +1107,7 @@ class ResponseGenerationService:
                     risks_limitations=[],
                     sources=[],
                     confidence_score=0.0,
-                    provider=f"{_provider_used}/{settings.OPENROUTER_MODEL}",
+                    provider=f"ollama/{settings.OLLAMA_MODEL}" if "ollama" in _provider_used.lower() else f"{_provider_used}/{settings.OPENROUTER_MODEL}",
                     generation_mode="fallback_error",
                     is_degraded=True,
                     error_message=err_msg,
@@ -694,8 +1116,10 @@ class ResponseGenerationService:
 
             logger.info(
                 f"ResponseGenerationService: Comparison response generated via "
-                f"provider={_provider_used} (model={settings.OPENROUTER_MODEL})"
+                f"provider={_provider_used} (model={settings.OLLAMA_MODEL if 'ollama' in _provider_used.lower() else settings.OPENROUTER_MODEL})"
             )
+
+            provider_label = f"ollama/{settings.OLLAMA_MODEL}" if "ollama" in _provider_used.lower() else f"{_provider_used}/{settings.OPENROUTER_MODEL}"
 
             res = AIResponse(
                 executive_summary=exec_summary,
@@ -707,7 +1131,7 @@ class ResponseGenerationService:
                 confidence_score=confidence_score,
                 assumptions_used=assumptions_used,
                 cited_sources_detailed=cited_sources,
-                provider=f"{_provider_used}/{settings.OPENROUTER_MODEL}",
+                provider=provider_label,
                 generation_mode="llm",
                 is_degraded=False,
             )
@@ -784,6 +1208,23 @@ class ResponseGenerationService:
 
         # Check if we have zero chunks
         if not retrieved_chunks:
+            if any(k in user_query.lower() for k in ["news", "headline", "press release", "current events"]):
+                res = AIResponse(
+                    executive_summary=f"Live news is currently unavailable for {company_name}{ticker}. FinIQ does not substitute stale annual report document chunks for live news queries.",
+                    key_insights=["No recent news articles were returned by the live news feed."],
+                    supporting_evidence=[],
+                    risks_limitations=["Live web news feed returned no articles or key is unconfigured."],
+                    sources=[],
+                    confidence_score=0.0,
+                    assumptions_used=[],
+                    missing_inputs_explanation="No live news context available for analysis.",
+                    cited_sources_detailed=[],
+                    generation_mode="news_unavailable_fallback",
+                    is_degraded=True,
+                )
+                await cache.set(cache_key, res.model_dump(), ttl=43200)
+                return res
+
             res = AIResponse(
                 executive_summary=f"Sufficient company details were not found or no relevant document source chunks were retrieved to analyze '{user_query}'.",
                 key_insights=["Unable to compile detailed investment report due to insufficient document context."],
@@ -809,7 +1250,7 @@ class ResponseGenerationService:
             text = chunk.get("chunk_text", "").strip()
             title = chunk.get("document_title", "Source Document")
             page = chunk.get("page_number")
-            citation = f"{title}, Page {page}" if page else title
+            citation = f"{title}, Page {page}" if (page is not None) else title
             
             if not text:
                 continue
@@ -997,19 +1438,22 @@ class ResponseGenerationService:
             else:
                 summary_content = f"{company_name} is summarized by these primary operations and market activities. " + " ".join(insights[:3])
         elif intent == "financial":
-            summary_intro = f"Financial Analysis Summary for {company_name}{ticker}: "
-            summary_content = "The financial reports indicate key metrics and highlights for the period: " + " ".join(insights[:2])
+            summary_intro = f"Financial Analysis Summary for {company_name}{ticker}:\n\n"
+            if reconstructed_table:
+                summary_content = f"Key financial metrics extracted from filings:\n\n{reconstructed_table}"
+            else:
+                summary_content = f"Financial statement highlights for {company_name}{ticker} extracted from filings."
         elif intent == "investment":
             summary_intro = f"Investment Outlook for {company_name}{ticker}: "
-            summary_content = "Strategic plans and drivers present significant outlook parameters: " + " ".join(insights[:2])
+            summary_content = "Strategic plans and drivers present significant outlook parameters."
         elif intent == "risk":
             summary_intro = f"Risk Assessment for {company_name}{ticker}: "
-            summary_content = "Key challenges and uncertainties identified in filings are: " + " ".join(insights[:2])
+            summary_content = "Key challenges and uncertainties identified in filings."
         elif intent == "event":
-            summary_intro = f"Business and Market Impact Summary: "
-            summary_content = "Recent updates and events indicate strategic impacts: " + " ".join(insights[:2])
+            summary_intro = f"Business and Market Impact Summary for {company_name}{ticker}: "
+            summary_content = "Recent updates and events indicate strategic impacts."
         else:
-            summary_content = " ".join(insights[:2])
+            summary_content = f"Summary of document findings for {company_name}{ticker}."
 
         exec_sum = f"{summary_intro}{summary_content}".strip()
 

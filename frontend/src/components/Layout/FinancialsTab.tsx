@@ -37,14 +37,16 @@ export const FinancialsTab: React.FC<FinancialsTabProps> = ({ ticker }) => {
         const result = await api.getDetailedFinancials(ticker);
         if (active) {
           if (result.available === false) {
-            setError(result.reason || 'Financial data unavailable');
+            const reasonStr = typeof result.reason === 'string' ? result.reason : (result.reason?.reason || result.reason?.message || 'Financial data unavailable');
+            setError(reasonStr);
           } else {
             setData(result);
           }
         }
       } catch (err: any) {
         if (active) {
-          setError(err.message || 'Failed to fetch financial statements');
+          const errStr = typeof err?.message === 'string' ? err.message : (typeof err === 'string' ? err : 'Failed to fetch financial statements');
+          setError(errStr);
         }
       } finally {
         if (active) {

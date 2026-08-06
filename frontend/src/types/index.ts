@@ -11,6 +11,16 @@ export interface Company {
   updated_at: string;
 }
 
+
+
+export interface CompanyNewsResponse {
+  company_id: string;
+  company_name: string;
+  ticker_symbol: string;
+  articles: NewsArticle[];
+}
+
+
 export type DocumentType = 'annual_report' | 'quarterly_report' | 'earnings_transcript' | 'investor_presentation' | 'sec_filing';
 
 export type IngestionStatus = 'pending' | 'processing' | 'completed' | 'failed';
@@ -37,6 +47,7 @@ export interface AIResponse {
   supporting_evidence: string[];
   risks_limitations: string[];
   sources: string[];
+  evidence_source_type?: 'live_news' | 'rag_documents' | 'mixed' | 'none' | null;
 }
 
 export interface ChatMessage {
@@ -175,15 +186,17 @@ export interface EventAnalyzeResponse {
 export interface NewsArticle {
   id: string;
   title: string;
-  content: string;
   source: string;
   url?: string;
-  sentiment: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
-  confidence_score: number;
   published_at: string;
-  category: string;
-  companies_mentioned: string[];
-  industries_mentioned: string[];
+  snippet?: string;
+  content?: string;
+  image_url?: string;
+  sentiment?: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL' | string;
+  confidence_score?: number;
+  category?: string;
+  companies_mentioned?: string[];
+  industries_mentioned?: string[];
 }
 
 export interface SentimentBreakdown {
@@ -357,4 +370,18 @@ export interface HistoricalPricePoint {
   close: number;
   volume: number;
 }
+
+export interface TopMover {
+  symbol: string;
+  price: number;
+  change: number;
+  pct_change: number;
+}
+
+export interface TopMoversResponse {
+  as_of: string;
+  market_open: boolean;
+  movers: TopMover[];
+}
+
 

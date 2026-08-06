@@ -2,9 +2,10 @@ from datetime import datetime
 import enum
 import uuid
 from typing import Optional
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Enum as SQLEnum, Boolean
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 from app.models.base import BaseModel
+from app.core.utils import normalize_fiscal_year
 
 
 class DocumentType(str, enum.Enum):
@@ -30,7 +31,7 @@ class ProcessingStatus(str, enum.Enum):
 
 class Document(BaseModel):
     """
-    SQLAlchemy model representing a Document metadata entry in the FinsightAI platform.
+    SQLAlchemy model representing a Document metadata entry in the FinIQ platform.
     Inherits primary key (UUID) and standard timestamps from BaseModel.
     """
     __tablename__ = "documents"
@@ -61,6 +62,12 @@ class Document(BaseModel):
     uploaded_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False
     )
+    heartbeat_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     file_hash: Mapped[Optional[str]] = mapped_column(String(64), nullable=True, unique=True, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default="true", default=True)
 
     company = relationship("Company", backref="documents")
+
+    @validates("fiscal_year")
+    def validate_fiscal_year(self, key, value):
+        return normalize_fiscal_year(value)

@@ -24,6 +24,7 @@ from app.schemas.portfolio import (
     PortfolioCreate, HoldingCreate, HoldingOut, PortfolioOut,
     AllocationItem, PortfolioAnalysisResponse, PortfolioRecommendationResponse
 )
+from app.schemas.news import NewsArticle, CompanyNewsResponse
 from app.schemas.user import (
     UserRegister, UserLogin, TokenResponse, RefreshRequest, TokenRefreshResponse, UserOut
 )

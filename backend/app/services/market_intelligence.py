@@ -98,21 +98,61 @@ class MarketIntelligenceService:
             market_intel_val = None
 
         # ── 2. Retrieve Articles ──────────────────────────────────────────────
-        articles = await self.repo.get_recent_articles(
-            limit=limit,
-            company_id=company_id,
-            industry=industry,
-            date_from=date_from,
-            date_to=date_to,
-        )
+        articles = []
+        live_apitube_articles = []
+        apitube_error = None
+
+        comp_target = db_company or (await self.company_repo.get(company_id) if company_id else None)
+        if comp_target:
+            try:
+                from app.services.rss_news import fetch_company_news
+                logger.info(
+                    f"MarketIntelligenceService: Invoking '{fetch_company_news.__module__}.fetch_company_news' "
+                    f"for company_name='{comp_target.company_name}' (ticker='{comp_target.ticker_symbol}')"
+                )
+                live_apitube_articles = await fetch_company_news(
+                    company_name=comp_target.company_name,
+                    ticker=comp_target.ticker_symbol,
+                    limit=limit,
+                )
+            except Exception as exc:
+                apitube_error = str(exc)
+                logger.warning(
+                    f"MarketIntelligenceService: RSS live news fetch failed for "
+                    f"{comp_target.company_name}: {exc}"
+                )
+
+        if live_apitube_articles:
+            logger.info(
+                f"MarketIntelligenceService: Sourced {len(live_apitube_articles)} live articles "
+                f"via RSSNews for {comp_target.company_name}."
+            )
+            # Use APITube live articles as primary news source
+            articles = live_apitube_articles
+        else:
+            # Fall back to DB articles if no target company or APITube was not called
+            if not comp_target:
+                articles = await self.repo.get_recent_articles(
+                    limit=limit,
+                    company_id=company_id,
+                    industry=industry,
+                    date_from=date_from,
+                    date_to=date_to,
+                )
 
         if not articles:
-            logger.warning("MarketIntelligenceService: no articles found for given filters.")
+            company_name_label = comp_target.company_name if comp_target else "the requested entity"
+            reason_detail = f" Details: {apitube_error}" if apitube_error else ""
+            unavailable_msg = (
+                f"Live news currently unavailable for {company_name_label}.{reason_detail} "
+                "FinIQ does not substitute stale annual report document chunks for live news queries."
+            )
+            logger.warning(f"MarketIntelligenceService: {unavailable_msg}")
             return MarketAnalyzeResponse(
-                market_summary="No news articles available for the specified filters. Please ingest news first.",
+                market_summary=unavailable_msg,
                 related_news=[],
                 related_events=[],
-                impacted_companies=[],
+                impacted_companies=[comp_target.company_name] if comp_target else [],
                 impacted_industries=[],
                 sentiment_analysis=SentimentBreakdown(
                     positive_count=0, negative_count=0, neutral_count=0,
@@ -124,9 +164,24 @@ class MarketIntelligenceService:
             )
 
         # ── 3. Compute Sentiment Breakdown ────────────────────────────────────
-        pos = sum(1 for a in articles if a.sentiment == NewsSentiment.positive)
-        neg = sum(1 for a in articles if a.sentiment == NewsSentiment.negative)
-        neu = sum(1 for a in articles if a.sentiment == NewsSentiment.neutral)
+        def _get_sent(art):
+            s = getattr(art, "sentiment", None)
+            if hasattr(s, "value"):
+                return s.value
+            return str(s) if s else "neutral"
+
+        def _get_cat(art):
+            c = getattr(art, "category", None)
+            if hasattr(c, "value"):
+                return c.value
+            return str(c) if c else "general"
+
+        def _get_summary(art):
+            return getattr(art, "summary", None) or getattr(art, "snippet", "") or art.title
+
+        pos = sum(1 for a in articles if _get_sent(a) == "positive")
+        neg = sum(1 for a in articles if _get_sent(a) == "negative")
+        neu = sum(1 for a in articles if _get_sent(a) not in ("positive", "negative"))
         total = len(articles)
 
         if pos > neg and pos > neu:
@@ -152,13 +207,18 @@ class MarketIntelligenceService:
         impacted_industries_set: set[str] = set()
 
         for article in articles:
-            # Reload associations in lazy manner via article relationships
-            for company_mention in article.company_mentions:
+            # Reload associations in lazy manner via article relationships if present
+            company_mentions = getattr(article, "company_mentions", []) or []
+            for company_mention in company_mentions:
                 company = await self.company_repo.get(company_mention.company_id)
                 if company:
                     impacted_companies_set.add(company.company_name)
-            for industry_mention in article.industry_mentions:
+            industry_mentions = getattr(article, "industry_mentions", []) or []
+            for industry_mention in industry_mentions:
                 impacted_industries_set.add(industry_mention.industry_name)
+
+        if comp_target:
+            impacted_companies_set.add(comp_target.company_name)
 
         impacted_companies = sorted(impacted_companies_set)
         impacted_industries = sorted(impacted_industries_set)
@@ -182,53 +242,83 @@ class MarketIntelligenceService:
                 logger.warning(f"Event correlation skipped: {e}")
 
         # ── 6. Persist Grouped MarketEvent ────────────────────────────────────
-        dominant_category = _dominant_category(articles)
+        dominant_category = NewsCategory.market if hasattr(NewsCategory, "market") else "market"
         impact_level = _compute_impact_level(neg, total)
 
         try:
+            pub_dates = []
+            for a in articles:
+                p = getattr(a, "published_at", None)
+                if p:
+                    pub_dates.append(p if isinstance(p, datetime) else datetime.utcnow())
+            start_d = min(pub_dates) if pub_dates else datetime.utcnow()
+            end_d = max(pub_dates) if pub_dates else datetime.utcnow()
+
             await self.repo.create_market_event({
                 "title": f"Market Intelligence Scan — {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}",
                 "summary": f"Aggregated market event from {total} articles. Overall sentiment: {overall}.",
                 "event_type": dominant_category,
-                "sentiment": NewsSentiment(overall),
+                "sentiment": NewsSentiment(overall) if hasattr(NewsSentiment, overall) else NewsSentiment.neutral,
                 "impact_level": impact_level,
                 "article_count": total,
-                "start_date": min(a.published_at for a in articles),
-                "end_date": max(a.published_at for a in articles),
+                "start_date": start_d,
+                "end_date": end_d,
             })
             await self.db.commit()
         except Exception as e:
             logger.warning(f"MarketEvent persist skipped: {e}")
 
         # ── 7. Serialize Articles ─────────────────────────────────────────────
-        article_outs = [
-            NewsArticleOut(
-                id=a.id,
-                title=a.title,
-                source=a.source,
-                url=a.url,
-                published_at=a.published_at,
-                summary=a.summary,
-                category=a.category.value,
-                sentiment=a.sentiment.value,
-                relevance_score=a.relevance_score,
-                confidence_score=a.confidence_score,
-                created_at=a.created_at,
-            )
-            for a in articles
-        ]
+        article_outs = []
+        retrieved_chunks = []
+        for a in articles:
+            # Handle both APITube schema and DB models safely
+            c_obj = getattr(a, "category", "general")
+            cat_val = c_obj.value if hasattr(c_obj, "value") else str(c_obj or "general")
+            s_obj = getattr(a, "sentiment", "neutral")
+            sent_val = s_obj.value if hasattr(s_obj, "value") else str(s_obj or "neutral")
+            p_obj = getattr(a, "published_at", None)
+            pub_at = p_obj.isoformat() if hasattr(p_obj, "isoformat") else str(p_obj or "")
+            created_at_val = getattr(a, "created_at", pub_at)
+            if hasattr(created_at_val, "isoformat"):
+                created_at_val = created_at_val.isoformat()
+            raw_id = getattr(a, "id", None)
+            try:
+                art_id = UUID(str(raw_id)) if raw_id else uuid4()
+            except Exception:
+                from uuid import uuid5, NAMESPACE_URL
+                art_id = uuid5(NAMESPACE_URL, str(a.title))
+            summary_text = getattr(a, "summary", None) or getattr(a, "snippet", "") or a.title
 
-        # ── 8. Build retrieved_chunks for ResponseGenerationService ──────────
-        retrieved_chunks = [
-            {
-                "chunk_text": a.summary,
+            rel_score = getattr(a, "relevance_score", 1.0)
+            conf_score = getattr(a, "confidence_score", 1.0)
+
+            article_outs.append(
+                NewsArticleOut(
+                    id=art_id,
+                    title=a.title,
+                    source=a.source,
+                    url=a.url,
+                    published_at=pub_at,
+                    summary=summary_text,
+                    category=cat_val,
+                    sentiment=sent_val,
+                    relevance_score=rel_score,
+                    confidence_score=conf_score,
+                    created_at=str(created_at_val),
+                )
+            )
+
+            retrieved_chunks.append({
+                "chunk_text": summary_text,
                 "document_title": f"{a.source} — {a.title}",
-                "page_number": 1,
-                "section_title": a.category.value,
-                "similarity_score": a.relevance_score,
-            }
-            for a in articles
-        ]
+                "page_number": None,  # Explicitly None for web news citations
+                "section_title": cat_val,
+                "similarity_score": rel_score,
+                "source": a.source,
+                "url": a.url,
+                "published_at": pub_at,
+            })
 
         # ── 9. Generate AI Market Summary ────────────────────────────────────
         scope = ""
@@ -237,10 +327,11 @@ class MarketIntelligenceService:
         elif industry:
             scope = f" in the {industry} sector"
 
+        dom_cat_str = dominant_category.value if hasattr(dominant_category, "value") else str(dominant_category)
         query = (
             f"Generate a concise market intelligence summary{scope}. "
             f"Analyzed {total} articles. Overall sentiment: {overall}. "
-            f"Key categories: {dominant_category.value}. "
+            f"Key categories: {dom_cat_str}. "
             f"Impacted companies: {', '.join(impacted_companies[:5]) or 'None identified'}. "
             f"Impacted industries: {', '.join(impacted_industries[:5]) or 'None identified'}. "
             f"Provide a structured market overview with risks and opportunities."

@@ -26,6 +26,7 @@ import asyncio
 from typing import Any, Dict, Optional
 
 from loguru import logger
+from app.services.financial_ratios_scraper import normalize_percentage
 
 
 # ---------------------------------------------------------------------------
@@ -204,7 +205,7 @@ def _fetch_financial_summary_sync(yf_ticker: str) -> Dict[str, Any]:
         # First attempt: info dict (trailing twelve months)
         roe_info = _safe_float(info.get("returnOnEquity"))
         if roe_info is not None:
-            roe = roe_info
+            roe = normalize_percentage(roe_info, input_scale="fraction")
             roe_source = "yahoo_direct"
             logger.debug(f"[{yf_ticker}] ROE: {roe} (yahoo_direct from info)")
         else:
@@ -225,9 +226,9 @@ def _fetch_financial_summary_sync(yf_ticker: str) -> Dict[str, Any]:
                         avg_equity = (equity_current + equity_prior) / 2.0
                     else:
                         avg_equity = equity_current
-                    roe = net_profit / avg_equity
+                    roe = normalize_percentage(net_profit / avg_equity, input_scale="fraction")
                     roe_source = "calculated"
-                    logger.debug(f"[{yf_ticker}] ROE: {roe:.4f} (calculated, avg_equity={avg_equity})")
+                    logger.debug(f"[{yf_ticker}] ROE: {roe} (calculated, avg_equity={avg_equity})")
             if roe is None:
                 logger.warning(f"[{yf_ticker}] ROE could not be calculated")
 

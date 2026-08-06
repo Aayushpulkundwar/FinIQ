@@ -72,29 +72,40 @@ class FinancialIntelligenceService:
 
         requested_year = fiscal_year or datetime.now(timezone.utc).year
         resolved_fiscal_year = requested_year
-        reporting_status = None
-        source_type = "rag"
-
-        if not available_years:
-            # No documents exist for this company. Fall back to yfinance
-            source_type = "yfinance"
-            reporting_status = f"Showing live fallback data for FY{resolved_fiscal_year} (no PDF filings uploaded)."
-        elif requested_year not in available_years:
-            # Document exists but requested year is missing -> Fall back to latest available year in DB
-            resolved_fiscal_year = available_years[0]
-            reporting_status = f"Showing FY{resolved_fiscal_year} data; requested FY{requested_year} is not yet available."
-            logger.info(f"Fiscal year fallback: requested {requested_year} -> resolved {resolved_fiscal_year}")
-
         resolved_period_type = PeriodType(period_type) if period_type else PeriodType.annual
         cache_key = f"financial:{company_id}:{resolved_fiscal_year}:{resolved_period_type.value}"
-        
+
+        # ── Primary Path: Try yfinance live extraction FIRST for resolved ticker ──
+        source_type = "rag"
+        reporting_status = None
+        yfinance_values: Dict[str, Optional[float]] = {}
+
+        if company.ticker_symbol:
+            try:
+                yfinance_values = await self._fetch_from_yfinance_fallback(
+                    company.ticker_symbol, company.exchange or "", resolved_fiscal_year
+                )
+                # If yfinance returned at least one numeric field, use yfinance as primary source
+                if any(val is not None for val in yfinance_values.values()):
+                    source_type = "yfinance"
+                    logger.info(f"FinancialIntelligenceService: Primary yfinance fetch succeeded for {company.ticker_symbol} (FY{resolved_fiscal_year}).")
+                else:
+                    logger.warning(f"FinancialIntelligenceService: yfinance returned empty data for {company.ticker_symbol} (FY{resolved_fiscal_year}). Falling back to PDF RAG.")
+            except Exception as yf_err:
+                logger.warning(f"FinancialIntelligenceService: Primary yfinance fetch failed for {company.ticker_symbol}: {yf_err}. Falling back to PDF RAG.")
+
+        if source_type == "rag":
+            reporting_status = "Sourced from uploaded filings (yfinance unavailable)"
+            if available_years and requested_year not in available_years:
+                resolved_fiscal_year = available_years[0]
+                reporting_status = f"Sourced from uploaded filings (yfinance unavailable) — showing FY{resolved_fiscal_year} data; requested FY{requested_year} is not available."
+
         # Check Cache
         cached = await cache.get(cache_key)
         if cached is not None:
             logger.bind(company_id=str(company_id), fiscal_year=resolved_fiscal_year).info(
                 "FinancialIntelligenceService.analyze CACHE HIT."
             )
-            # Re-insert the dynamic reporting_status which might change depending on requested year
             cached["reporting_status"] = reporting_status
             return FinancialAnalyzeResponse(**cached)
 
@@ -109,12 +120,16 @@ class FinancialIntelligenceService:
         chunk_source_map: Dict[str, Optional[RetrievalResponse]] = {}
 
         if source_type == "yfinance":
-            # ── Fallback: yfinance live extraction ──────────────────────────
-            logger.info(f"yfinance live fetch for {company.ticker_symbol} (year {resolved_fiscal_year})")
-            yfinance_values = await self._fetch_from_yfinance_fallback(
-                company.ticker_symbol, company.exchange or "", resolved_fiscal_year
-            )
-            clean_values = yfinance_values
+            # If company uses INR or Indian exchanges (NSE/BSE), normalize absolute INR to Crores for DB storage
+            is_inr = (company.exchange and any(ex in company.exchange for ex in ["NSE", "BSE"])) or company.currency == "INR"
+            if is_inr:
+                clean_values = {
+                    k: (round(v / 1e7, 4) if v is not None else None)
+                    for k, v in yfinance_values.items()
+                }
+            else:
+                clean_values = yfinance_values
+
             from app.services.financial_intelligence.validator import MissingReason
             missing_reasons = {
                 field: MissingReason.NOT_REPORTED 
@@ -122,9 +137,8 @@ class FinancialIntelligenceService:
             }
             chunk_source_map = {field: None for field in clean_values.keys()}
         else:
-            # ── Standard Pipeline: RAG from database annual report PDFs ──────
-            # Note: We query the resolved fiscal year chunks
-            logger.info(f"RAG extraction for {company.company_name} (year {resolved_fiscal_year})")
+            # ── Fallback Pipeline: RAG from database annual report PDFs ──────
+            logger.info(f"RAG fallback extraction for {company.company_name} (year {resolved_fiscal_year})")
             chunks_by_group = await self.extractor.extract_chunks(company_id=company_id, fiscal_year=resolved_fiscal_year)
             
             # Parse parsed values
@@ -139,12 +153,38 @@ class FinancialIntelligenceService:
             # Validate clean values
             clean_values, missing_reasons = FinancialValidator.validate(normalized)
 
-        # ── Step 5: Persist financial period and statement ──────────────────────
-        logger.info("Step 5: Persisting financial period and statement.")
+        # ── Step 5: Resolve reporting currency and persist financial period ─────
+        logger.info("Step 5: Resolving reporting currency and persisting financial period.")
+        
+        reporting_currency = None
+        if source_type == "yfinance":
+            # From yfinance fetch
+            reporting_currency = yfinance_values.get("currency") if 'yfinance_values' in locals() else None
+        
+        if not reporting_currency:
+            exchange_str = (company.exchange or "").upper()
+            ticker_str = (company.ticker_symbol or "").upper()
+            isin_str = (company.isin or "").upper()
+            
+            if exchange_str in ["NSE", "BSE"] or isin_str.startswith("INE") or ticker_str.endswith(".NS") or ticker_str.endswith(".BO"):
+                reporting_currency = "INR"
+            elif exchange_str in ["NASDAQ", "NYSE", "AMEX"] or isin_str.startswith("US"):
+                reporting_currency = "USD"
+            elif exchange_str in ["LSE"] or isin_str.startswith("GB"):
+                reporting_currency = "GBP"
+
+        if not reporting_currency:
+            raise ValueError(
+                f"Could not determine reporting currency for company '{company.company_name}' "
+                f"({company.ticker_symbol}, exchange='{company.exchange}'). "
+                "Explicit currency resolution is required — silent defaulting to USD is disallowed."
+            )
+
         period = await self.repository.get_or_create_period(
             company_id=company_id,
             fiscal_year=resolved_fiscal_year,
             period_type=resolved_period_type,
+            currency=reporting_currency,
         )
 
         # Upsert FinancialStatement
@@ -395,13 +435,21 @@ class FinancialIntelligenceService:
                 if not matched_row:
                     return None
 
+                # 1. Try matching year string in column headers
                 for col in df.columns:
-                    if str(year) in str(col):
+                    if str(year) in str(col) or str(year)[-2:] in str(col):
                         val = df.loc[matched_row, col]
                         if pd.notna(val):
                             if hasattr(val, "iloc"):
                                 return float(val.iloc[0])
                             return float(val)
+                # 2. Fall back to the most recent column (df.columns[0])
+                if len(df.columns) > 0:
+                    val = df.loc[matched_row, df.columns[0]]
+                    if pd.notna(val):
+                        if hasattr(val, "iloc"):
+                            return float(val.iloc[0])
+                        return float(val)
                 return None
 
             return {
